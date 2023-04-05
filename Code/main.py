@@ -2,7 +2,7 @@
 import pygame
 import sys
 
-from director import Director
+from Source.director import Director
 
 pygame.init()
 

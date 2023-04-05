@@ -129,5 +129,5 @@ dmypy.json
 .pyre/
 /.idea/
 .vscode/
-/Data/config.json
-/Data/users.json
+/Code/Data/config.json
+/Code/Data/users.json

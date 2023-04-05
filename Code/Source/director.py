@@ -2,7 +2,7 @@
 from pygame import event
 import pygame
 
-from scene import Scene
+from Source.scene import Scene
 
 # NullScene is a scene that does nothing
 # Used internally by Director
