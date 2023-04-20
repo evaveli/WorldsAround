@@ -24,25 +24,21 @@ class NullScene(Scene):
 
 class Director:
     def __init__(self):
-        self.scenes = list[Scene]()
-        self.scenes.append(NullScene())
-        self.current = self.scenes[-1]
+        self.scenes: list[Scene] = [NullScene()]
 
     def push(self, scene: Scene):
-        self.current.exit()
+        self.scenes[-1].exit()
         self.scenes.append(scene)
-        self.current = self.scenes[-1]
-        self.current.enter()
+        self.scenes[-1].enter()
 
     def pop(self) -> Scene:
-        self.current.exit()
+        self.scenes[-1].exit()
         scene = self.scenes.pop()
 
         if len(self.scenes) == 0:
             self.scenes.append(NullScene())
 
-        self.current = self.scenes[-1]
-        self.current.enter()
+        self.scenes[-1].enter()
 
         return scene
 

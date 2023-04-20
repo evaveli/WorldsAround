@@ -23,4 +23,3 @@ while True:
 
     pygame.display.update()
     fps.tick(60)
-
