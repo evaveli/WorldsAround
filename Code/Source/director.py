@@ -6,12 +6,15 @@ import pygame
 
 from Source.scene import Scene
 
+
 class Director:
     def __init__(self):
         self.scenes: list[Scene] = []
 
     def push(self, scene: Scene):
-        self.scenes[-1].exit()
+        if len(self.scenes) > 0:
+            self.scenes[-1].exit()
+
         self.scenes.append(scene)
         self.scenes[-1].enter()
 
@@ -27,9 +30,9 @@ class Director:
 
     def input(self, event: event.Event):
         cmd = self.scenes[-1].input(event)
-        if cmd is Scene.Push:
+        if isinstance(cmd, Scene.Push):
             self.push(cmd.scene)
-        elif cmd is Scene.Pop:
+        elif isinstance(cmd, Scene.Pop):
             self.pop()
 
     def update(self, dt: int):
