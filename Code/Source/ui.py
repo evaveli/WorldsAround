@@ -345,11 +345,12 @@ class Context:
     def text(
             self,
             rect: pygame.Rect, text: str,
-            color: pygame.Color = pygame.Color(255, 255, 255)) -> pygame.Rect:
+            color: pygame.Color = pygame.Color(255, 255, 255),
+            size: int = 24 ) -> pygame.Rect:
         """
         Draws text at the given rect.
         """
-        font = pygame.font.Font(None, 24)
+        font = pygame.font.Font(None, size)
         surf = font.render(text, False, color)
         # area, _ = cut_left(rect, surf.get_rect().w)
 
@@ -363,11 +364,12 @@ class Context:
     def text_layout(
             self,
             layout: Layout, text: str,
-            color: pygame.Color = pygame.Color(255, 255, 255)) -> pygame.Rect:
+            color: pygame.Color = pygame.Color(255, 255, 255),
+            size: int = 24 ) -> pygame.Rect:
         """
         Draws text with the given layout.
         """
-        font = pygame.font.Font(None, 24)
+        font = pygame.font.Font(None, size)
         surf = font.render(text, False, color)
 
         area, _ = rectcut(layout.rect, surf.get_rect().w, layout.direction)
@@ -380,21 +382,23 @@ class Context:
     def button(
             self,
             rect: pygame.Rect, text: str,
-            color: pygame.Color = pygame.Color(255, 255, 255)) -> bool:
+            color: pygame.Color = pygame.Color(255, 255, 255),
+            size: int = 24 ) -> bool:
         """
         Draws a button at the given rect.
         """
-        area = self.text(rect, text, color)
+        area = self.text(rect, text, color, size)
         return self._mouse.pressed and area.collidepoint(self._mouse.pos)
 
     def button_layout(
             self,
             layout: Layout, text: str,
-            color: pygame.Color = pygame.Color(255, 255, 255)) -> bool:
+            color: pygame.Color = pygame.Color(255, 255, 255),
+            size: int = 24) -> bool:
         """
         Draws a button with the given layout.
         """
-        area = self.text_layout(layout, text, color)
+        area = self.text_layout(layout, text, color, size)
         return self._mouse.pressed and area.collidepoint(self._mouse.pos)
 
     def slider(
