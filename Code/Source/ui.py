@@ -5,6 +5,7 @@ from typing import Generic, TypeVar
 
 import pygame
 
+from Source.font_cache import FontCache, FontId
 from Source.image_cache import ImageCache, TextureId
 
 # TODO:
@@ -294,11 +295,13 @@ class Context:
     A context is responsible for drawing widgets and managing events related to them.
     """
 
-    def __init__(self, images: ImageCache):
+    def __init__(self, images: ImageCache, fonts: FontCache):
         """
         Creates a new context.
         """
         self._images = images
+        self._fonts = fonts
+
         self._commands: list[_Command] = []
         self._mouse = _Mouse()
 
@@ -345,12 +348,15 @@ class Context:
     def text(
             self,
             rect: pygame.Rect, text: str,
-            color: pygame.Color = pygame.Color(255, 255, 255),
-            size: int = 24 ) -> pygame.Rect:
+            uid: FontId | None = None,
+            color: pygame.Color = pygame.Color(255, 255, 255)) -> pygame.Rect:
         """
-        Draws text at the given rect.
+        Draws text at the given rect. If no font is specified, a default one is used.
         """
-        font = pygame.font.Font(None, size)
+        font = self._fonts.get(uid) if uid else None
+        if font is None:
+            font = pygame.font.Font(None, 24)
+
         surf = font.render(text, False, color)
         # area, _ = cut_left(rect, surf.get_rect().w)
 
@@ -364,12 +370,15 @@ class Context:
     def text_layout(
             self,
             layout: Layout, text: str,
-            color: pygame.Color = pygame.Color(255, 255, 255),
-            size: int = 24 ) -> pygame.Rect:
+            uid: FontId | None = None,
+            color: pygame.Color = pygame.Color(255, 255, 255)) -> pygame.Rect:
         """
-        Draws text with the given layout.
+        Draws text with the given layout. If no font is specified, a default one is used.
         """
-        font = pygame.font.Font(None, size)
+        font = self._fonts.get(uid) if uid else None
+        if font is None:
+            font = pygame.font.Font(None, 24)
+
         surf = font.render(text, False, color)
 
         area, _ = rectcut(layout.rect, surf.get_rect().w, layout.direction)
@@ -382,23 +391,23 @@ class Context:
     def button(
             self,
             rect: pygame.Rect, text: str,
-            color: pygame.Color = pygame.Color(255, 255, 255),
-            size: int = 24 ) -> bool:
+            font: FontId | None = None,
+            text_color: pygame.Color = pygame.Color(255, 255, 255)) -> bool:
         """
-        Draws a button at the given rect.
+        Draws a button at the given rect. If no font is specified, a default one is used.
         """
-        area = self.text(rect, text, color, size)
+        area = self.text(rect, text, font, text_color)
         return self._mouse.pressed and area.collidepoint(self._mouse.pos)
 
     def button_layout(
             self,
             layout: Layout, text: str,
-            color: pygame.Color = pygame.Color(255, 255, 255),
-            size: int = 24) -> bool:
+            font: FontId | None = None,
+            color: pygame.Color = pygame.Color(255, 255, 255)) -> bool:
         """
-        Draws a button with the given layout.
+        Draws a button with the given layout. If no font is specified, a default one is used.
         """
-        area = self.text_layout(layout, text, color, size)
+        area = self.text_layout(layout, text, font, color)
         return self._mouse.pressed and area.collidepoint(self._mouse.pos)
 
     def slider(
@@ -445,3 +454,5 @@ class Context:
 
                 scaled = pygame.transform.scale(img, scale)
                 screen.blit(scaled, cmd.rect)
+
+        self._commands.clear()

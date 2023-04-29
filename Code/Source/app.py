@@ -9,6 +9,9 @@ from Source.director import Director
 
 
 class _NullScene(Scene):
+    def enter(self, assets, ui):
+        pass
+
     def update(self, dt: int):
         pass
 

@@ -5,6 +5,9 @@ import abc
 import pygame
 from pygame import event
 
+from Source.assets import Assets
+from Source import ui
+
 
 class Scene(metaclass=abc.ABCMeta):
     """
@@ -40,10 +43,10 @@ class Scene(metaclass=abc.ABCMeta):
         If Continue is returned, the current scene will continue to be updated and drawn.
     """
 
-
-    def enter(self):
+    @abc.abstractclassmethod
+    def enter(self, assets: Assets, ui: ui.Context):
         """
-            Optional method called when entering the scene.
+            Method called when entering the scene.
         """
         pass
 

@@ -5,6 +5,7 @@ import pygame
 from Source import ui
 
 from Source.assets import Assets, FailedToLoadAssets
+from Source.font_cache import FontCache, FontId
 from Source.image_cache import ImageCache, TextureId
 from Source.scene import Scene
 
@@ -13,17 +14,14 @@ class SettingsScene(Scene):
     def __init__(self):
         super().__init__()
 
-        self.images = ImageCache()
-        self.assets = Assets.load(self.images)
-
-        if isinstance(self.assets, FailedToLoadAssets):
-            raise Exception(f"Failed to load assets: {self.assets.asset}")
-
-        self.ctx = ui.Context(self.images)
         # UI state
         self.go_back = False
         self.music_volume = ui.Param(0.5)
         self.sfx_volume = ui.Param(0.5)
+
+    def enter(self, assets: Assets, ui: ui.Context):
+        self.assets = assets
+        self.ctx = ui
 
     def input(self, event: pygame.event.Event) -> Scene.Command:
         # inform the UI context of the event
@@ -36,9 +34,6 @@ class SettingsScene(Scene):
         return Scene.Continue()
 
     def update(self, dt: int):
-        # just to satisfy the type checker
-        self.assets = cast(Assets, self.assets)
-
         rect = pygame.display.get_surface().get_rect()
 
         # header
