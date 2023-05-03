@@ -20,7 +20,7 @@ class MainMenu(Scene):
         self.quit = False
         self.to_settings = False
 
-    def enter(self,  assets: Assets, ui: ui.Context):
+    def enter(self, assets: Assets, ui: ui.Context):
         self.assets = assets
         self.ctx = ui
 
@@ -47,35 +47,24 @@ class MainMenu(Scene):
         ui.cut_right(head, 10)
         ui.cut_top(head, 150)
 
-        black = pygame.Color(0, 0, 0)
-        self.ctx.text_layout(ui.center(head), "Worlds Around",
-                             self.assets.SYSTEM_72, black)
+        self.ctx.text_layout(
+            ui.center(head), "Worlds  Around", self.assets.ARCADE_72)
 
-        ui.cut_left(body, 10)
-        ui.cut_right(body, 10)
-        ui.cut_top(body, 70)
+        _, body = ui.cut_top(body, 150)
+        _, body = ui.cut_bottom(body, 150)
 
         btn1, btn2, btn3 = ui.vsplit_n(body, 3)
 
         play = self.ctx.button_layout(
-            ui.center(btn1), "Play", self.assets.SYSTEM_48, black)
-        settings = self.ctx.button_layout(
-            ui.center(btn2), "Settings", self.assets.SYSTEM_48, black)
-        quitBtn = self.ctx.button_layout(
-            ui.center(btn3), "Quit", self.assets.SYSTEM_48, black)
-
-        if settings:
-            self.to_settings = True
-            return
-
-        if quitBtn:
-            self.quit = True
-            return
+            ui.center(btn1), "Play", self.assets.ARCADE_48)
+        self.to_settings = self.ctx.button_layout(
+            ui.center(btn2), "Settings", self.assets.ARCADE_48)
+        self.quit = self.ctx.button_layout(
+            ui.center(btn3), "Quit", self.assets.ARCADE_48)
 
         # ui.cut_left(head, 10)
         # ui.cut_top(head, 50)
 
     def draw(self, screen: pygame.Surface):
         # render UI
-        screen.fill((255, 255, 255))
         self.ctx.draw(screen)

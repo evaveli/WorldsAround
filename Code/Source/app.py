@@ -48,7 +48,7 @@ class App:
 
                 director.input(event)
 
-            screen.fill((150, 150, 150))
+            screen.fill((255, 255, 255))
 
             director.update(pygame.time.get_ticks())
             director.draw(screen)

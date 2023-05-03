@@ -1,9 +1,7 @@
 
 from dataclasses import dataclass
 
-import pygame
-
-from Source.font_cache import FontCache
+from Source.font_cache import FontCache, FontId
 from Source.image_cache import ImageCache, TextureId
 
 
@@ -14,19 +12,24 @@ class FailedToLoadAssets(Exception):
 
 class Assets:
     def __init__(self, images: ImageCache, fonts: FontCache):
-        def _load_image(name: str) -> TextureId | None:
+        def _load_image(name: str) -> TextureId:
             uid = images.load(name)
             if uid is None:
                 raise FailedToLoadAssets(name)
             return uid
 
-        # TODO: load assets here
         self.MUSIC_ICON = images.load("music.png")
         self.SOUNDS_ICON = images.load("sounds.png")
 
-        self.SYSTEM_24 = fonts.load_system(24)
-        self.SYSTEM_48 = fonts.load_system(48)
-        self.SYSTEM_72 = fonts.load_system(72)
+        def _load_font(name: str, size: int) -> FontId:
+            uid = fonts.load(name, size)
+            if uid is None:
+                raise FailedToLoadAssets(name)
+            return uid
+
+        self.ARCADE_24 = _load_font("ARCADECLASSIC.ttf", 24)
+        self.ARCADE_48 = _load_font("ARCADECLASSIC.ttf", 48)
+        self.ARCADE_72 = _load_font("ARCADECLASSIC.ttf", 72)
 
     @staticmethod
     def load(images: ImageCache, fonts: FontCache) -> "Assets | FailedToLoadAssets":

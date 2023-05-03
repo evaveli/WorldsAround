@@ -349,11 +349,11 @@ class Context:
             self,
             rect: pygame.Rect, text: str,
             uid: FontId | None = None,
-            color: pygame.Color = pygame.Color(255, 255, 255)) -> pygame.Rect:
+            color: pygame.Color = pygame.Color(0, 0, 0)) -> pygame.Rect:
         """
         Draws text at the given rect. If no font is specified, a default one is used.
         """
-        font = self._fonts.get(uid) if uid else None
+        font = self._fonts.get(uid) if uid is not None else None
         if font is None:
             font = pygame.font.Font(None, 24)
 
@@ -371,11 +371,11 @@ class Context:
             self,
             layout: Layout, text: str,
             uid: FontId | None = None,
-            color: pygame.Color = pygame.Color(255, 255, 255)) -> pygame.Rect:
+            color: pygame.Color = pygame.Color(0, 0, 0)) -> pygame.Rect:
         """
         Draws text with the given layout. If no font is specified, a default one is used.
         """
-        font = self._fonts.get(uid) if uid else None
+        font = self._fonts.get(uid) if uid is not None else None
         if font is None:
             font = pygame.font.Font(None, 24)
 
@@ -392,7 +392,7 @@ class Context:
             self,
             rect: pygame.Rect, text: str,
             font: FontId | None = None,
-            text_color: pygame.Color = pygame.Color(255, 255, 255)) -> bool:
+            text_color: pygame.Color = pygame.Color(0, 0, 0)) -> bool:
         """
         Draws a button at the given rect. If no font is specified, a default one is used.
         """
@@ -403,7 +403,7 @@ class Context:
             self,
             layout: Layout, text: str,
             font: FontId | None = None,
-            color: pygame.Color = pygame.Color(255, 255, 255)) -> bool:
+            color: pygame.Color = pygame.Color(0, 0, 0)) -> bool:
         """
         Draws a button with the given layout. If no font is specified, a default one is used.
         """
@@ -414,7 +414,7 @@ class Context:
             self,
             rect: pygame.Rect, param: Param[float],
             min: float, max: float,
-            color: pygame.Color = pygame.Color(255, 255, 255)) -> bool:
+            color: pygame.Color = pygame.Color(0, 0, 0)) -> bool:
         w = 256  # the width of the slider
 
         area = pygame.Rect(rect.left, rect.top + 4, w, 8)

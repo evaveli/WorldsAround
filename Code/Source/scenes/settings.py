@@ -43,12 +43,13 @@ class SettingsScene(Scene):
         ui.cut_right(head, 10)
         ui.cut_top(head, 10)
 
-        self.ctx.text_layout(ui.center(head), "Settings")
+        self.ctx.text_layout(ui.center(head), "Settings",
+                             self.assets.ARCADE_48)
 
         ui.cut_left(head, 10)
         ui.cut_top(head, 10)
 
-        if self.ctx.button(head, "Back"):
+        if self.ctx.button(head, "Back", self.assets.ARCADE_24):
             self.go_back = True
             return
 
@@ -71,27 +72,28 @@ class SettingsScene(Scene):
             ui.cut_left(action, 10)
             ui.cut_right(action, 10)
 
-            self.ctx.text_layout(ui.center(action), text)
+            self.ctx.text_layout(ui.center(action), text,
+                                 self.assets.ARCADE_24)
 
             ui.cut_top(btn, 10)
             ui.cut_left(btn, 10)
             ui.cut_right(btn, 10)
 
-            return self.ctx.button_layout(ui.center(btn), key)
+            return self.ctx.button_layout(ui.center(btn), key, self.assets.ARCADE_24)
 
-        if mapping(enter_door, "Enter door", "E"):
+        if mapping(enter_door, "Enter  door", "E"):
             # remap
             pass
 
-        if mapping(move_left, "Move left", "A"):
+        if mapping(move_left, "Move  left", "A"):
             # remap
             pass
 
-        if mapping(move_down, "Move down", "S"):
+        if mapping(move_down, "Move  down", "S"):
             # remap
             pass
 
-        if mapping(move_right, "Move right", "D"):
+        if mapping(move_right, "Move  right", "D"):
             # remap
             pass
 
@@ -101,15 +103,15 @@ class SettingsScene(Scene):
             # remap
             pass
 
-        if mapping(powerup_1, "Powerup 1", "1"):
+        if mapping(powerup_1, "Powerup  1", "1"):
             # remap
             pass
 
-        if mapping(powerup_2, "Powerup 2", "2"):
+        if mapping(powerup_2, "Powerup  2", "2"):
             # remap
             pass
 
-        if self.ctx.button_layout(ui.center(reset), "Reset"):
+        if self.ctx.button_layout(ui.center(reset), "Reset", self.assets.ARCADE_24):
             # reset controls
             pass
 
