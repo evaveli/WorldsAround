@@ -27,9 +27,9 @@ class Assets:
                 raise FailedToLoadAssets(name)
             return uid
 
-        self.ARCADE_24 = _load_font("ARCADECLASSIC.ttf", 24)
-        self.ARCADE_48 = _load_font("ARCADECLASSIC.ttf", 48)
-        self.ARCADE_72 = _load_font("ARCADECLASSIC.ttf", 72)
+        self.ARCADE_24 = _load_font("ARCADECLASSIC.TTF", 24)
+        self.ARCADE_48 = _load_font("ARCADECLASSIC.TTF", 48)
+        self.ARCADE_72 = _load_font("ARCADECLASSIC.TTF", 72)
 
     @staticmethod
     def load(images: ImageCache, fonts: FontCache) -> "Assets | FailedToLoadAssets":

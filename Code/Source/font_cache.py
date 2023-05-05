@@ -42,7 +42,7 @@ class FontCache:
         if path not in self.ids:
             self.ids[name] = len(self.fonts)
             self.fonts.append(pygame.font.Font(
-                "Resources/Fonts/" + path, size))
+                "./Resources/Fonts/" + path, size))
 
         return FontId(self.ids[name])
 
