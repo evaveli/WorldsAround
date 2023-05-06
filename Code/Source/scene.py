@@ -1,12 +1,34 @@
 
-from dataclasses import dataclass
 import abc
+from dataclasses import dataclass
+from typing import cast
 
 import pygame
 from pygame import event
 
-from Source.assets import Assets
 from Source import ui
+
+from Source.assets import Assets, FailedToLoadAssets
+from Source.font_cache import FontCache
+from Source.image_cache import ImageCache
+
+
+class SceneContext:
+    """
+    A class that holds data that is shared between scenes.
+    """
+
+    def __init__(self):
+        self.images = ImageCache()
+        self.fonts = FontCache()
+
+        assets = Assets.load(self.images, self.fonts)
+
+        if assets is FailedToLoadAssets:
+            raise RuntimeError("Failed to load assets")
+
+        self.assets = cast(Assets, assets)
+        self.ui = ui.Context(self.images, self.fonts)
 
 
 class Scene(metaclass=abc.ABCMeta):
@@ -44,7 +66,7 @@ class Scene(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractclassmethod
-    def enter(self, assets: Assets, ui: ui.Context):
+    def enter(self, ctx: SceneContext):
         """
             Method called when entering the scene.
         """

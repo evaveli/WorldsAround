@@ -8,8 +8,10 @@ import pygame
 from Source.font_cache import FontCache, FontId
 from Source.image_cache import ImageCache, TextureId
 
-# TODO:
-# don't store all events in the context, only the ones that are relevant
+# IDEA:
+# you can avoid passing the rect to every widget by storing the rect inside the context
+# then you would "split" the context if you wanted to separate the widgets into different rects
+# this would allow for removing the "_layout" functions with the "default" ones, by simply passing a layout as a parameter
 
 
 # Rectcut-related stuff

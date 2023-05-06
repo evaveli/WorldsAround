@@ -4,10 +4,8 @@ import pygame
 
 from Source import ui
 
-from Source.assets import Assets, FailedToLoadAssets
-from Source.font_cache import FontCache, FontId
-from Source.image_cache import ImageCache, TextureId
-from Source.scene import Scene
+from Source.image_cache import TextureId
+from Source.scene import Scene, SceneContext
 
 
 class SettingsScene(Scene):
@@ -19,9 +17,9 @@ class SettingsScene(Scene):
         self.music_volume = ui.Param(0.5)
         self.sfx_volume = ui.Param(0.5)
 
-    def enter(self, assets: Assets, ui: ui.Context):
-        self.assets = assets
-        self.ctx = ui
+    def enter(self, ctx: SceneContext):
+        self.assets = ctx.assets
+        self.ctx = ctx.ui
 
     def input(self, event: pygame.event.Event) -> Scene.Command:
         # inform the UI context of the event
@@ -81,7 +79,7 @@ class SettingsScene(Scene):
 
             return self.ctx.button_layout(ui.center(btn), key, self.assets.ARCADE_24)
 
-        if mapping(enter_door, "Enter  door", "E"):
+        if mapping(enter_door, "Enter  door", "W"):
             # remap
             pass
 

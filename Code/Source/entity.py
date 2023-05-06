@@ -25,10 +25,7 @@ class Entity:
         """
         Get a component of the given type. Returns None if the entity does not have the component.
         """
-        if kind.__name__ not in self.components:
-            return None
-        else:
-            return cast(Type[_Comp], self.components[kind.__name__])
+        return cast(Type[_Comp] | None, self.components.get(kind.__name__))
 
     def unsafe_get(self, kind: Type[_Comp]) -> Type[_Comp]:
         """
