@@ -12,6 +12,7 @@ from Source.image_cache import ImageCache, TextureId
 
 
 from Source.scenes.settings import SettingsScene
+from Source.scenes.profiles import ProfileScene
 
 
 class MainMenu(Scene):
@@ -19,6 +20,7 @@ class MainMenu(Scene):
         super().__init__()
         self.quit = False
         self.to_settings = False
+        self.play = False
 
     def enter(self, assets: Assets, ui: ui.Context):
         self.assets = assets
@@ -34,6 +36,9 @@ class MainMenu(Scene):
         elif self.to_settings:
             self.to_settings = False
             return Scene.Push(SettingsScene())
+        elif self.play:
+            self.play = False
+            return Scene.Push(ProfileScene())
 
         return Scene.Continue()
 
@@ -55,7 +60,7 @@ class MainMenu(Scene):
 
         btn1, btn2, btn3 = ui.vsplit_n(body, 3)
 
-        play = self.ctx.button_layout(
+        self.play = self.ctx.button_layout(
             ui.center(btn1), "Play", self.assets.ARCADE_48)
         self.to_settings = self.ctx.button_layout(
             ui.center(btn2), "Settings", self.assets.ARCADE_48)
