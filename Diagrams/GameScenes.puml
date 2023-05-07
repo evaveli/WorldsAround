@@ -1,0 +1,35 @@
+@startuml main_menu_settings
+
+|User|
+|Game Context|
+
+|User|
+start
+
+: User selects its profile;
+
+split
+: User clicks on the play button;
+: User is redirected to the level selection page;
+
+split again
+: User clicks on the quit button;
+: Game is closed;
+
+split again
+: User clicks on settings button;
+: User is redirected to settings page;
+: User can change settings;
+
+|Game Context|
+: Game Context is saved;
+
+|User|
+: User clicks on back button;
+: User is redirected to main page;
+
+end split
+
+stop
+
+@enduml

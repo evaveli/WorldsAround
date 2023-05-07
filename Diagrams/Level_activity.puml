@@ -1,0 +1,73 @@
+@startuml level
+
+|Current Profile|
+|User|
+|Level|
+
+|Level|
+
+skinparam ConditionEndStyle hline
+start
+
+
+repeat
+    |Level|
+    : Locked;
+    : Check previous level;
+    |Current Profile|
+repeat while (Finished by user?) is (No)
+-> Yes;
+
+|Level|
+: Unlocked;
+
+' Game over: Restart + Main Menu + Settings
+' Finished: Next level + Restart + Main Menu
+
+while (Loop Forever)
+    : Playing;
+    : Wait for level exit;
+
+    if (Game Over) then (No)
+        : Check score;
+
+        if (Higher?) then (Yes)
+            |Current Profile|
+            : Update level high score;
+            |Level|
+        endif
+
+        : Cleared;
+
+        |User|
+        : Get action;
+
+        |Level|
+        switch (User action)
+        case (Restart)
+        : Restart level;
+        case (Main Menu)
+        stop
+        case (Next level)
+        : Go to next level;
+        endswitch
+    else (Yes)
+        |User|
+        : Get action;
+
+        |Level|
+        switch (User action)
+        case (Restart)
+        : Restart level;
+        case (Main Menu)
+        stop
+        case (Settings)
+        stop
+        endswitch
+    endif
+
+end while
+
+stop
+
+@enduml
