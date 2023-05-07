@@ -5,7 +5,8 @@ import pygame
 from Source import ui
 
 from Source.image_cache import TextureId
-from Source.scene import Scene, SceneContext
+from Source.scene import Scene
+from Source.scene_context import SceneContext
 
 
 class SettingsScene(Scene):

@@ -39,8 +39,11 @@ class Entity:
         """
         self.components.update({type(value).__name__: value})
 
-    def has(self, kind: type) -> bool:
+    def has(self, kind: tuple | Type[_Comp]) -> bool:
         """
         Check if the entity has a component of the given type.
         """
-        return kind.__name__ in self.components
+        if isinstance(kind, tuple):
+            return all(k.__name__ in self.components for k in kind)
+        else:
+            return kind.__name__ in self.components

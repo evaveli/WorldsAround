@@ -1,0 +1,34 @@
+{
+    "name": "test tileset",
+    "image": "nature_tileset.png",
+    "tile_size": [
+        16,
+        16
+    ],
+    "tiles": [
+        {
+            "tid": 1,
+            "offset": [ 0, 0 ]
+        },
+        {
+            "tid": 2,
+            "offset": [ 16, 0 ]
+        },
+        {
+            "tid": 3,
+            "offset": [ 32, 0 ]
+        },
+        {
+            "tid": 4,
+            "offset": [ 32, 48 ]
+        },
+        {
+            "tid": 5,
+            "offset": [ 32, 64 ]
+        },
+        {
+            "tid": 6,
+            "offset": [ 32, 80 ]
+        }
+    ]
+}

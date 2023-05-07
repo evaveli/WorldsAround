@@ -4,7 +4,8 @@ from typing import cast
 import pygame
 
 from Source import ui
-from Source.scene import Scene, SceneContext
+from Source.scene import Scene
+from Source.scene_context import SceneContext
 
 from Source.scenes.settings import SettingsScene
 

@@ -1,11 +1,11 @@
 
 import sys
-from typing import cast
 
 from pygame import event
 import pygame
 
-from Source.scene import Scene, SceneContext
+from Source.scene import Scene
+from Source.scene_context import SceneContext
 
 
 class Director:
