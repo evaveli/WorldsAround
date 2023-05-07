@@ -1,12 +1,11 @@
 
-from dataclasses import dataclass
 import abc
+from dataclasses import dataclass
 
 import pygame
 from pygame import event
 
-from Source.assets import Assets
-from Source import ui
+from Source.scene_context import SceneContext
 
 
 class Scene(metaclass=abc.ABCMeta):
@@ -44,7 +43,7 @@ class Scene(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractclassmethod
-    def enter(self, assets: Assets, ui: ui.Context):
+    def enter(self, ctx: SceneContext):
         """
             Method called when entering the scene.
         """

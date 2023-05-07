@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pygame import Rect
 
 from Source.entity import Component
+from Source.image_cache import TextureId
 
 
 @dataclass
@@ -19,5 +20,5 @@ class Size(Component):
 
 @dataclass
 class Sprite(Component):
-    uid: int = -1 # the id of the sprite in the ImageCache
+    uid: TextureId = TextureId(-1) # the id of the sprite in the ImageCache
     rect: Rect = Rect(0, 0, 0, 0)

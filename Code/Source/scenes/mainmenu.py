@@ -5,11 +5,7 @@ import pygame
 
 from Source import ui
 from Source.scene import Scene
-
-from Source.assets import Assets, FailedToLoadAssets
-from Source.font_cache import FontCache, FontId
-from Source.image_cache import ImageCache, TextureId
-
+from Source.scene_context import SceneContext
 
 from Source.scenes.settings import SettingsScene
 from Source.scenes.profiles import ProfileScene
@@ -22,9 +18,9 @@ class MainMenu(Scene):
         self.to_settings = False
         self.play = False
 
-    def enter(self, assets: Assets, ui: ui.Context):
-        self.assets = assets
-        self.ctx = ui
+    def enter(self, ctx: SceneContext):
+        self.assets = ctx.assets
+        self.ctx = ctx.ui
 
     def input(self, event: pygame.event.Event) -> Scene.Command:
         # inform the UI context of the event

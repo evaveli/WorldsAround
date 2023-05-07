@@ -25,10 +25,7 @@ class Entity:
         """
         Get a component of the given type. Returns None if the entity does not have the component.
         """
-        if kind.__name__ not in self.components:
-            return None
-        else:
-            return cast(Type[_Comp], self.components[kind.__name__])
+        return cast(Type[_Comp] | None, self.components.get(kind.__name__))
 
     def unsafe_get(self, kind: Type[_Comp]) -> Type[_Comp]:
         """
@@ -42,8 +39,11 @@ class Entity:
         """
         self.components.update({type(value).__name__: value})
 
-    def has(self, kind: type) -> bool:
+    def has(self, kind: tuple | Type[_Comp]) -> bool:
         """
         Check if the entity has a component of the given type.
         """
-        return kind.__name__ in self.components
+        if isinstance(kind, tuple):
+            return all(k.__name__ in self.components for k in kind)
+        else:
+            return kind.__name__ in self.components
