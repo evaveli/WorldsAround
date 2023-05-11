@@ -21,6 +21,7 @@ class SettingsScene(Scene):
     def enter(self, ctx: SceneContext):
         self.assets = ctx.assets
         self.ctx = ctx.ui
+        self.camera = ctx.camera
 
     def input(self, event: pygame.event.Event) -> Scene.Command:
         # inform the UI context of the event
@@ -138,6 +139,6 @@ class SettingsScene(Scene):
             # change sfx volume
             pass
 
-    def draw(self, screen: pygame.Surface):
+    def draw(self):
         # render UI
-        self.ctx.draw(screen)
+        self.ctx.draw(self.camera.screen)

@@ -15,7 +15,7 @@ class _NullScene(Scene):
     def update(self, dt: int):
         pass
 
-    def draw(self, screen: pygame.Surface):
+    def draw(self):
         pass
 
 
@@ -51,6 +51,6 @@ class App:
             screen.fill((255, 255, 255))
 
             director.update(pygame.time.get_ticks())
-            director.draw(screen)
+            director.draw()
 
             pygame.display.update()

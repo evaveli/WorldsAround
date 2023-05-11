@@ -41,5 +41,5 @@ class Director:
     def update(self, dt: int):
         self.scenes[-1].update(dt)
 
-    def draw(self, screen: pygame.Surface):
-        self.scenes[-1].draw(screen)
+    def draw(self):
+        self.scenes[-1].draw()

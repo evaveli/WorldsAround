@@ -73,7 +73,7 @@ class Scene(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractclassmethod
-    def draw(self, screen: pygame.Surface):
+    def draw(self):
         """
             Called every frame to render objects of the scene.
             Must be implemented by the subclass.
