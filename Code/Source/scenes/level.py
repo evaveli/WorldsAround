@@ -17,15 +17,33 @@ class Level(Scene):
         self.file = file
         self.objects: list[Entity] = []
         self.pause = False
+        self.dir = (0, 0) # used for camera movement
 
     def enter(self, ctx: SceneContext):
         self.assets = ctx.assets
         self.images = ctx.images
         self.ctx = ctx.ui
+        self.camera = ctx.camera
 
         self.map = TileMap.load("./Resources/Maps/" + self.file, self.images)
 
     def input(self, event: event.Event) -> Scene.Command:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.pause = True
+            elif event.key == pygame.K_a:
+                self.dir = (-10, 0)
+            elif event.key == pygame.K_d:
+                self.dir = (10, 0)
+            elif event.key == pygame.K_w:
+                self.dir = (0, -10)
+            elif event.key == pygame.K_s:
+                self.dir = (0, 10)
+        elif event.type == pygame.KEYUP:
+            self.dir = (0, 0)
+
+        self.camera.move_by(*self.dir)
+
         if self.pause:
             self.pause = False
             # TODO: replace with Push(PauseMenu())
@@ -43,9 +61,9 @@ class Level(Scene):
         if self.ctx.button(rect, "Pause"):
             self.pause = True
 
-    def draw(self, screen: pygame.Surface):
+    def draw(self):
         if self.map.background is not None:
-            screen.blit(self.images.unsafe_get(self.map.background), (0, 0))
+            self.camera.render(self.images.unsafe_get(self.map.background))
 
         tile_size = self.map.tileset.tile_size
         tile_count = len(self.map.tiles)
@@ -82,7 +100,7 @@ class Level(Scene):
                 # TODO:
                 # replace this with `blits`
                 # which processes a list of surfaces
-                screen.blit(ts, dst, area)
+                self.camera.render(ts, dst, area)
 
         # render objects
         for obj in self.objects:
@@ -94,7 +112,7 @@ class Level(Scene):
                 # it should be, given that the mapping
                 # is passed from the code, not the map
                 tex = self.images.unsafe_get(sprite.uid)
-                screen.blit(tex, sprite.rect.move(pos.x, pos.y))
+                self.camera.render_at(tex, sprite.rect.move(pos.x, pos.y))
 
         # render UI
-        self.ctx.draw(screen)
+        self.ctx.draw(self.camera.screen)

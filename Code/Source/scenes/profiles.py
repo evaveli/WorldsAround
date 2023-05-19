@@ -1,13 +1,9 @@
 
-from typing import cast
 import pygame
 
 from Source import ui
 
-from Source.assets import Assets, FailedToLoadAssets
-from Source.font_cache import FontCache, FontId
-from Source.image_cache import ImageCache, TextureId
-from Source.scene import Scene
+from Source.scene import Scene, SceneContext
 
 
 class ProfileScene(Scene):
@@ -16,9 +12,10 @@ class ProfileScene(Scene):
         # UI state
         self.go_back = False
 
-    def enter(self, assets: Assets, ui: ui.Context):
-        self.assets = assets
-        self.ctx = ui
+    def enter(self, ctx: SceneContext):
+        self.assets = ctx.assets
+        self.ctx = ctx.ui
+        self.camera = ctx.camera
 
     def input(self, event: pygame.event.Event) -> Scene.Command:
         # inform the UI context of the event
@@ -29,7 +26,6 @@ class ProfileScene(Scene):
             return Scene.Pop()
 
         return Scene.Continue()
-
 
     def update(self, dt: int):
         rect = pygame.display.get_surface().get_rect()
@@ -64,6 +60,6 @@ class ProfileScene(Scene):
         if self.ctx.button(profile3, "Profile 3", self.assets.ARCADE_24):
             pass
 
-    def draw(self, screen: pygame.Surface):
+    def draw(self):
         # render UI
-        self.ctx.draw(screen)
+        self.ctx.draw(self.camera.screen)

@@ -1,5 +1,4 @@
 
-from typing import cast
 
 import pygame
 
@@ -7,8 +6,8 @@ from Source import ui
 from Source.scene import Scene
 from Source.scene_context import SceneContext
 
+from Source.scenes.level import Level
 from Source.scenes.settings import SettingsScene
-from Source.scenes.profiles import ProfileScene
 
 
 class MainMenu(Scene):
@@ -21,6 +20,7 @@ class MainMenu(Scene):
     def enter(self, ctx: SceneContext):
         self.assets = ctx.assets
         self.ctx = ctx.ui
+        self.camera = ctx.camera
 
     def input(self, event: pygame.event.Event) -> Scene.Command:
         # inform the UI context of the event
@@ -34,7 +34,7 @@ class MainMenu(Scene):
             return Scene.Push(SettingsScene())
         elif self.play:
             self.play = False
-            return Scene.Push(ProfileScene())
+            return Scene.Push(Level("level1.json"))
 
         return Scene.Continue()
 
@@ -66,6 +66,6 @@ class MainMenu(Scene):
         # ui.cut_left(head, 10)
         # ui.cut_top(head, 50)
 
-    def draw(self, screen: pygame.Surface):
+    def draw(self):
         # render UI
-        self.ctx.draw(screen)
+        self.ctx.draw(self.camera.screen)
