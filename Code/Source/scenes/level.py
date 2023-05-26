@@ -17,7 +17,7 @@ class Level(Scene):
         self.file = file
         self.objects: list[Entity] = []
         self.pause = False
-        self.dir = (0, 0) # used for camera movement
+        self.dir = (0, 0)  # used for camera movement
 
     def enter(self, ctx: SceneContext):
         self.assets = ctx.assets
@@ -29,16 +29,19 @@ class Level(Scene):
 
     def input(self, event: event.Event) -> Scene.Command:
         if event.type == pygame.KEYDOWN:
+            dx, dy = self.dir
+
             if event.key == pygame.K_ESCAPE:
                 self.pause = True
             elif event.key == pygame.K_a:
-                self.dir = (-10, 0)
+                self.dir = (-10, dy)
             elif event.key == pygame.K_d:
-                self.dir = (10, 0)
+                self.dir = (10, dy)
             elif event.key == pygame.K_w:
-                self.dir = (0, -10)
+                self.dir = (dx, -10)
             elif event.key == pygame.K_s:
-                self.dir = (0, 10)
+                self.dir = (dx, 10)
+
         elif event.type == pygame.KEYUP:
             self.dir = (0, 0)
 

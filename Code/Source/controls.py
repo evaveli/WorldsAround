@@ -3,22 +3,20 @@ from dataclasses import dataclass
 
 import pygame
 
-from Source.entity import Entity, Component
-
 
 # TODO:
 # store controls configuration in a "action": int-key mapping
 # no two actions can have the same key
 
-Key = tuple[int, str]
+Key = int
 """
-    A tuple of a key ID and a string representation.
+A key on the keyboard.
 """
 
 
 @dataclass
-class Controls(Component):
-    open_door: Key
+class Controls:
+    enter_door: Key
     left: Key
     right: Key
     down: Key
@@ -29,18 +27,17 @@ class Controls(Component):
     @staticmethod
     def default() -> "Controls":
         return Controls(
-            open_door=(pygame.K_w, "W"),
-            left=(pygame.K_a, "A"),
-            right=(pygame.K_d, "D"),
-            down=(pygame.K_s, "S"),
-            jump=(pygame.K_SPACE, "Space"),
-            powerup_1=(pygame.K_1, "1"),
-            powerup_2=(pygame.K_2, "2"),
+            enter_door=pygame.K_w,
+            left=pygame.K_a,
+            right=pygame.K_d,
+            down=pygame.K_s,
+            jump=pygame.K_SPACE,
+            powerup_1=pygame.K_1,
+            powerup_2=pygame.K_2,
         )
 
+    def used(self, key: Key) -> bool:
+        return key in self.__dict__.values()
 
-class Player(Entity):
-    def __init__(self):
-        super().__init__(
-            Controls.default(),
-        )
+    def list(self) -> list[Key]:
+        return [self.enter_door, self.left, self.right, self.down, self.jump, self.powerup_1, self.powerup_2]

@@ -1,12 +1,21 @@
 
-from typing import cast
+from enum import Enum
+
 import pygame
+from pygame import key
 
 from Source import ui
 
+from Source.controls import Controls
 from Source.image_cache import TextureId
 from Source.scene import Scene
 from Source.scene_context import SceneContext
+
+
+class _Colors(Enum):
+    IDLE = pygame.Color(0, 0, 0, 0)
+    ERROR = pygame.Color(255, 0, 0, 255)
+    SELECTED = pygame.Color(0, 0, 0, 255)
 
 
 class SettingsScene(Scene):
@@ -15,17 +24,46 @@ class SettingsScene(Scene):
 
         # UI state
         self.go_back = False
+        self.listening = -1
         self.music_volume = ui.Param(0.5)
         self.sfx_volume = ui.Param(0.5)
+
+        self.color_table = [
+            _Colors.IDLE,  # enter door
+            _Colors.IDLE,  # move left
+            _Colors.IDLE,  # move right
+            _Colors.IDLE,  # move down
+            _Colors.IDLE,  # jump
+            _Colors.IDLE,  # powerup 1
+            _Colors.IDLE,  # powerup 2
+        ]
 
     def enter(self, ctx: SceneContext):
         self.assets = ctx.assets
         self.ctx = ctx.ui
         self.camera = ctx.camera
+        self.controls = ctx.profile.controls
 
     def input(self, event: pygame.event.Event) -> Scene.Command:
         # inform the UI context of the event
         self.ctx.feed(event)
+
+        if self.listening != -1:
+            print("listening to ", self.listening)
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.color_table[self.listening] = _Colors.IDLE
+                elif self.controls.used(event.key) and event.key != self.controls.list()[self.listening]:
+                    self.color_table[self.listening] = _Colors.ERROR
+                else:
+                    self.controls.list()[self.listening] = event.key
+
+                self.listening = -1
+                return Scene.Continue()
+
+            # elif event.type == pygame.MOUSEBUTTONDOWN:
+            #     self.listening = -1
 
         if self.go_back:
             self.go_back = False
@@ -65,7 +103,9 @@ class SettingsScene(Scene):
 
         enter_door, move_left, move_down, move_right = ui.vsplit_n(left, 4)
 
-        def mapping(rect: pygame.Rect, text: str, key: str) -> bool:
+        index = ui.Param(0)
+
+        def mapping(rect: pygame.Rect, text: str, key: str, index=index) -> bool:
             action, btn = ui.hsplit_pct(rect, 0.75)
 
             ui.cut_top(action, 10)
@@ -79,40 +119,44 @@ class SettingsScene(Scene):
             ui.cut_left(btn, 10)
             ui.cut_right(btn, 10)
 
-            return self.ctx.button_layout(ui.center(btn), key, self.assets.ARCADE_24)
+            index.value += 1
 
-        if mapping(enter_door, "Enter  door", "W"):
-            # remap
-            pass
+            text = key
 
-        if mapping(move_left, "Move  left", "A"):
-            # remap
-            pass
+            if self.listening == index.value - 1:
+                self.color_table[index.value - 1] = _Colors.SELECTED
+                text = "   "
+            elif self.color_table[index.value - 1] == _Colors.SELECTED:
+                self.color_table[index.value - 1] = _Colors.IDLE
 
-        if mapping(move_down, "Move  down", "S"):
-            # remap
-            pass
+            return self.ctx.button_layout(ui.center(btn), text, self.assets.ARCADE_24, border_color=self.color_table[index.value - 1].value) \
+                and (self.listening == -1 or self.listening == index.value - 1)
 
-        if mapping(move_right, "Move  right", "D"):
-            # remap
-            pass
+        if mapping(enter_door, "Enter  door", key.name(self.controls.enter_door)):
+            self.listening = index.value - 1
+
+        if mapping(move_left, "Move  left", key.name(self.controls.left)):
+            self.listening = index.value - 1
+
+        if mapping(move_down, "Move  down", key.name(self.controls.down)):
+            self.listening = index.value - 1
+
+        if mapping(move_right, "Move  right", key.name(self.controls.right)):
+            self.listening = index.value - 1
 
         jump, powerup_1, powerup_2, _ = ui.vsplit_n(right, 4)
 
-        if mapping(jump, "Jump", "Space"):
-            # remap
-            pass
+        if mapping(jump, "Jump", key.name(self.controls.jump)):
+            self.listening = index.value - 1
 
-        if mapping(powerup_1, "Powerup  1", "1"):
-            # remap
-            pass
+        if mapping(powerup_1, "Powerup  1", key.name(self.controls.powerup_1)):
+            self.listening = index.value - 1
 
-        if mapping(powerup_2, "Powerup  2", "2"):
-            # remap
-            pass
+        if mapping(powerup_2, "Powerup  2", key.name(self.controls.powerup_2)):
+            self.listening = index.value - 1
 
         if self.ctx.button_layout(ui.center(reset), "Reset", self.assets.ARCADE_24):
-            # reset controls
+            self.controls = Controls.default()
             pass
 
         bg, sfx = ui.vsplit(sound)

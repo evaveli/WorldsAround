@@ -258,6 +258,7 @@ def vsplit(rect: pygame.Rect) -> tuple[pygame.Rect, pygame.Rect]:
 class _DrawRect:
     rect: pygame.Rect
     color: pygame.Color
+    border: int = 0
 
 
 @dataclass
@@ -394,22 +395,36 @@ class Context:
             self,
             rect: pygame.Rect, text: str,
             font: FontId | None = None,
-            text_color: pygame.Color = pygame.Color(0, 0, 0)) -> bool:
+            text_color: pygame.Color = pygame.Color(0, 0, 0),
+            border_color: pygame.Color = pygame.Color(0, 0, 0, 0)) -> bool:
         """
         Draws a button at the given rect. If no font is specified, a default one is used.
         """
         area = self.text(rect, text, font, text_color)
+
+        if border_color.a > 0:
+            border = pygame.Rect(area.left - 10, area.top - 10,
+                                 area.width + 20, area.height - 10)
+            self._commands.append(_DrawRect(border, border_color, 3))
+
         return self._mouse.pressed and area.collidepoint(self._mouse.pos)
 
     def button_layout(
             self,
             layout: Layout, text: str,
             font: FontId | None = None,
-            color: pygame.Color = pygame.Color(0, 0, 0)) -> bool:
+            text_color: pygame.Color = pygame.Color(0, 0, 0),
+            border_color: pygame.Color = pygame.Color(0, 0, 0, 0)) -> bool:
         """
         Draws a button with the given layout. If no font is specified, a default one is used.
         """
-        area = self.text_layout(layout, text, font, color)
+        area = self.text_layout(layout, text, font, text_color)
+
+        if border_color.a > 0:
+            border = pygame.Rect(area.left - 10, area.top - 10,
+                                 area.width + 20, area.height - 10)
+            self._commands.append(_DrawRect(border, border_color, 3))
+
         return self._mouse.pressed and area.collidepoint(self._mouse.pos)
 
     def slider(
@@ -445,7 +460,7 @@ class Context:
         """
         for cmd in self._commands:
             if isinstance(cmd, _DrawRect):
-                pygame.draw.rect(screen, cmd.color, cmd.rect)
+                pygame.draw.rect(screen, cmd.color, cmd.rect, cmd.border)
             elif isinstance(cmd, _DrawText):
                 screen.blit(cmd.text, cmd.rect)
             elif isinstance(cmd, _DrawImage):

@@ -1,0 +1,21 @@
+@startuml deployment
+
+' Actors
+actor Player
+
+' Nodes
+node "Device I/O" as device
+database "Device Storage" as storage
+
+' Connections
+Player --> device : Controls game
+device -- storage : Accesses game data
+
+' Legend
+legend right
+    Actor/Player: Human player
+    Device I/O: Detects input from the player
+    Device Storage: Stores game data
+endlegend
+
+@enduml
