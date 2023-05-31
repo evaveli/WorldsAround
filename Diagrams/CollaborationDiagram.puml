@@ -1,0 +1,22 @@
+@startuml
+hide empty description
+[*] --> Stateai
+User --> Game: Starts the Game
+User --> Game: Pauses the Game
+User --> Game: Quits the Game
+
+
+User --> Character: presses left
+User --> Character: presses up
+User --> Character: presses right
+
+Character--> Power_ups: picks up
+Character--> Power_ups: uses
+
+Character --> Doors: Opens
+Character --> Enemies: Hits
+Enemies --> Character: Hits
+Enemies --> Character: Follow
+
+
+@enduml
