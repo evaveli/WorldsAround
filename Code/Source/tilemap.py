@@ -1,8 +1,10 @@
 
 from dataclasses import dataclass
 import json
-from typing import NewType
+from typing import Callable, NewType
 
+from Source.entity import Component, Entity
+from Source.entity_list import EntityList
 from Source.image_cache import ImageCache, TextureId
 
 # TODO:
@@ -13,8 +15,9 @@ from Source.image_cache import ImageCache, TextureId
 
     map file format:
         - name: str                 # name of the map
-        - background: Optional[str] # path to the background image, relative to "Resources/Images"
-        - width: int                # width of the map in pixels 
+        # path to the background image, relative to "Resources/Images"
+        - background: Optional[str]
+        - width: int                # width of the map in pixels
         - tileset: Tileset          # tileset used by the map
         - tiles: list[TileId]       # list of tiles in the map
 
@@ -26,7 +29,8 @@ from Source.image_cache import ImageCache, TextureId
 
     tile format:
         - offset: (int, int)         # offset of the tile in the tileset image
-        - properties: dict[str, str] # mapping from property name to property value
+        # mapping from property name to property value
+        - properties: dict[str, str]
 """
 
 TileId = NewType("TileId", int)
@@ -38,6 +42,17 @@ NULL_TILE = 0
 """
     The null tile is a tile that is always empty.
 """
+
+
+PropertyParser = Callable[[str], Component]
+"""
+    A property parser is a mapping from property name to a parsed component for an object.
+"""
+
+
+@dataclass
+class Tag(Component):
+    name: str
 
 
 @dataclass
@@ -70,9 +85,17 @@ class TileMap:
     width: int
     tileset: Tileset
     tiles: list[TileId]
+    objects: EntityList
 
     @staticmethod
-    def load(file: str, images: ImageCache) -> "TileMap":
+    def __default_property_parser(name: str) -> Component:
+        """
+            The default property parser.
+        """
+        return Tag(name)
+
+    @staticmethod
+    def load(file: str, images: ImageCache, parser: PropertyParser = __default_property_parser) -> "TileMap":
         """
             Load a tile map from a file.
         """
@@ -100,5 +123,11 @@ class TileMap:
                 ),
                 tiles=[
                     TileId(int(tile)) for tile in data["tiles"]
-                ]
+                ],
+                objects=EntityList(
+                    Entity(
+                        parser(name) for name in obj["properties"].keys()
+                    )
+                    for obj in data["objects"]
+                ) if "objects" in data else EntityList()
             )

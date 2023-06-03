@@ -1,11 +1,11 @@
 
-from typing import Type
+from typing import Iterable, Type
 from Source.entity import Entity, _Comp
 
 
 class EntityList:
-    def __init__(self, entities: list[Entity] | None = None):
-        self.entities = entities or []
+    def __init__(self, entities: Iterable[Entity] = ()):
+        self.entities = list(entities)
 
     def add(self, entity: Entity):
         self.entities.append(entity)

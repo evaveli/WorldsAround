@@ -28,6 +28,13 @@ class Scene(metaclass=abc.ABCMeta):
         """
         pass
 
+    class PopAll:
+        """
+            Command to pop all scenes from the scenes stack.
+            Return this from ```input``` to quit the application.
+        """
+        pass
+
     class Continue:
         """
             Command to continue updating and drawing the current scene.
@@ -35,10 +42,11 @@ class Scene(metaclass=abc.ABCMeta):
         """
         pass
 
-    Command = Push | Pop | Continue
+    Command = Push | Pop | PopAll | Continue
     """
         Commands that can be returned from ```input``` to handle the current scene.
         If Push or Pop is returned, the current scene will be exited or entered respectively.
+        If PopAll is returned, the application will quit.
         If Continue is returned, the current scene will continue to be updated and drawn.
     """
 

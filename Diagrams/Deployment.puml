@@ -13,7 +13,7 @@ device -- storage : Accesses game data
 
 ' Legend
 legend right
-    Actor/Player: Human player
+    Player: Human player
     Device I/O: Detects input from the player
     Device Storage: Stores game data
 endlegend

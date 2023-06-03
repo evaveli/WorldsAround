@@ -37,6 +37,9 @@ class Director:
             self.push(cmd.scene)
         elif isinstance(cmd, Scene.Pop):
             self.pop()
+        elif isinstance(cmd, Scene.PopAll):
+            while len(self.scenes) > 0:
+                self.pop()
 
     def update(self, dt: int):
         self.scenes[-1].update(dt)

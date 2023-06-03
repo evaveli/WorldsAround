@@ -8,6 +8,8 @@ from Source.scene import Scene
 from Source.scene_context import SceneContext
 from Source.tilemap import TileMap
 
+from Source.scenes.pause_menu import PauseMenu
+
 from Source import ui
 
 
@@ -24,22 +26,25 @@ class Level(Scene):
         self.images = ctx.images
         self.ctx = ctx.ui
         self.camera = ctx.camera
+        self.controls = ctx.profile.controls
 
         self.map = TileMap.load("./Resources/Maps/" + self.file, self.images)
 
     def input(self, event: event.Event) -> Scene.Command:
+        self.ctx.feed(event)
+
         if event.type == pygame.KEYDOWN:
             dx, dy = self.dir
 
             if event.key == pygame.K_ESCAPE:
                 self.pause = True
-            elif event.key == pygame.K_a:
+            elif event.key == self.controls.left:
                 self.dir = (-10, dy)
-            elif event.key == pygame.K_d:
+            elif event.key == self.controls.right:
                 self.dir = (10, dy)
-            elif event.key == pygame.K_w:
+            elif event.key == self.controls.enter_door:
                 self.dir = (dx, -10)
-            elif event.key == pygame.K_s:
+            elif event.key == self.controls.down:
                 self.dir = (dx, 10)
 
         elif event.type == pygame.KEYUP:
@@ -49,20 +54,20 @@ class Level(Scene):
 
         if self.pause:
             self.pause = False
-            # TODO: replace with Push(PauseMenu())
-            return Scene.Continue()
-            # return Scene.Push(PauseMenu())
+            return Scene.Push(PauseMenu())
 
         return Scene.Continue()
 
     def update(self, dt: int):
+        pygame.display.get_surface().fill((0, 0, 0))
+
         rect = pygame.display.get_surface().get_rect()
 
         ui.cut_left(rect, 20)
         ui.cut_top(rect, 20)
 
-        if self.ctx.button(rect, "Pause"):
-            self.pause = True
+        self.pause = self.ctx.button(
+            rect, "Pause", text_color=pygame.Color(255, 255, 255))
 
     def draw(self):
         if self.map.background is not None:

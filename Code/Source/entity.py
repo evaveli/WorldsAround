@@ -1,5 +1,5 @@
 
-from typing import Type, TypeVar, cast
+from typing import Iterable, Type, TypeVar, cast
 
 
 class Component:
@@ -15,7 +15,7 @@ class Entity:
     An entity is a collection of components.
     """
 
-    def __init__(self, *comps: Component):
+    def __init__(self, comps: Iterable[Component] = ()):
         """
         Create a new entity with the given components.
         """

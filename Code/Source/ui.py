@@ -401,13 +401,13 @@ class Context:
         Draws a button at the given rect. If no font is specified, a default one is used.
         """
         area = self.text(rect, text, font, text_color)
+        border = pygame.Rect(area.left - 10, area.top - 10,
+                             area.width + 20, area.height + 10)
 
         if border_color.a > 0:
-            border = pygame.Rect(area.left - 10, area.top - 10,
-                                 area.width + 20, area.height - 10)
             self._commands.append(_DrawRect(border, border_color, 3))
 
-        return self._mouse.pressed and area.collidepoint(self._mouse.pos)
+        return self._mouse.pressed and border.collidepoint(self._mouse.pos)
 
     def button_layout(
             self,
@@ -419,13 +419,13 @@ class Context:
         Draws a button with the given layout. If no font is specified, a default one is used.
         """
         area = self.text_layout(layout, text, font, text_color)
+        border = pygame.Rect(area.left - 10, area.top - 10,
+                             area.width + 20, area.height - 10)
 
         if border_color.a > 0:
-            border = pygame.Rect(area.left - 10, area.top - 10,
-                                 area.width + 20, area.height - 10)
             self._commands.append(_DrawRect(border, border_color, 3))
 
-        return self._mouse.pressed and area.collidepoint(self._mouse.pos)
+        return self._mouse.pressed and border.collidepoint(self._mouse.pos)
 
     def slider(
             self,

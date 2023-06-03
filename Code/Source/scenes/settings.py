@@ -17,6 +17,17 @@ class _Colors(Enum):
     ERROR = pygame.Color(255, 0, 0, 255)
     SELECTED = pygame.Color(0, 0, 0, 255)
 
+class _Controls(Enum):
+    NONE = -1
+
+    ENTER_DOOR = 0
+    LEFT = 1
+    DOWN = 2
+    RIGHT = 3
+    JUMP = 4
+    POWERUP_1 = 5
+    POWERUP_2 = 6
+
 
 class SettingsScene(Scene):
     def __init__(self):
@@ -24,7 +35,7 @@ class SettingsScene(Scene):
 
         # UI state
         self.go_back = False
-        self.listening = -1
+        self.listening = _Controls.NONE.value
         self.music_volume = ui.Param(0.5)
         self.sfx_volume = ui.Param(0.5)
 
@@ -49,15 +60,26 @@ class SettingsScene(Scene):
         self.ctx.feed(event)
 
         if self.listening != -1:
-            print("listening to ", self.listening)
-
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.color_table[self.listening] = _Colors.IDLE
                 elif self.controls.used(event.key) and event.key != self.controls.list()[self.listening]:
                     self.color_table[self.listening] = _Colors.ERROR
                 else:
-                    self.controls.list()[self.listening] = event.key
+                    if self.listening == _Controls.ENTER_DOOR.value:
+                        self.controls.enter_door = event.key
+                    elif self.listening == _Controls.LEFT.value:
+                        self.controls.left = event.key
+                    elif self.listening == _Controls.DOWN.value:
+                        self.controls.down = event.key
+                    elif self.listening == _Controls.RIGHT.value:
+                        self.controls.right = event.key
+                    elif self.listening == _Controls.JUMP.value:
+                        self.controls.jump = event.key
+                    elif self.listening == _Controls.POWERUP_1.value:
+                        self.controls.powerup_1 = event.key
+                    elif self.listening == _Controls.POWERUP_2.value:
+                        self.controls.powerup_2 = event.key
 
                 self.listening = -1
                 return Scene.Continue()
@@ -87,7 +109,7 @@ class SettingsScene(Scene):
         ui.cut_left(head, 10)
         ui.cut_top(head, 10)
 
-        if self.ctx.button(head, "Back", self.assets.ARCADE_24):
+        if self.listening == -1 and self.ctx.button(head, "Back", self.assets.ARCADE_24):
             self.go_back = True
             return
 
@@ -119,45 +141,51 @@ class SettingsScene(Scene):
             ui.cut_left(btn, 10)
             ui.cut_right(btn, 10)
 
-            index.value += 1
-
             text = key
 
-            if self.listening == index.value - 1:
-                self.color_table[index.value - 1] = _Colors.SELECTED
+            if self.listening == index.value:
+                self.color_table[index.value] = _Colors.SELECTED
                 text = "   "
-            elif self.color_table[index.value - 1] == _Colors.SELECTED:
-                self.color_table[index.value - 1] = _Colors.IDLE
+            elif self.color_table[index.value] == _Colors.SELECTED:
+                self.color_table[index.value] = _Colors.IDLE
+
+            index.value += 1
 
             return self.ctx.button_layout(ui.center(btn), text, self.assets.ARCADE_24, border_color=self.color_table[index.value - 1].value) \
                 and (self.listening == -1 or self.listening == index.value - 1)
 
         if mapping(enter_door, "Enter  door", key.name(self.controls.enter_door)):
-            self.listening = index.value - 1
+            self.listening = _Controls.ENTER_DOOR.value
 
         if mapping(move_left, "Move  left", key.name(self.controls.left)):
-            self.listening = index.value - 1
+            self.listening = _Controls.LEFT.value
 
         if mapping(move_down, "Move  down", key.name(self.controls.down)):
-            self.listening = index.value - 1
+            self.listening = _Controls.DOWN.value
 
         if mapping(move_right, "Move  right", key.name(self.controls.right)):
-            self.listening = index.value - 1
+            self.listening = _Controls.RIGHT.value
 
         jump, powerup_1, powerup_2, _ = ui.vsplit_n(right, 4)
 
         if mapping(jump, "Jump", key.name(self.controls.jump)):
-            self.listening = index.value - 1
+            self.listening = _Controls.JUMP.value
 
         if mapping(powerup_1, "Powerup  1", key.name(self.controls.powerup_1)):
-            self.listening = index.value - 1
+            self.listening = _Controls.POWERUP_1.value
 
         if mapping(powerup_2, "Powerup  2", key.name(self.controls.powerup_2)):
-            self.listening = index.value - 1
+            self.listening = _Controls.POWERUP_2.value
 
         if self.ctx.button_layout(ui.center(reset), "Reset", self.assets.ARCADE_24):
-            self.controls = Controls.default()
-            pass
+            defc = Controls.default()
+            self.controls.enter_door = defc.enter_door
+            self.controls.left = defc.left
+            self.controls.down = defc.down
+            self.controls.right = defc.right
+            self.controls.jump = defc.jump
+            self.controls.powerup_1 = defc.powerup_1
+            self.controls.powerup_2 = defc.powerup_2
 
         bg, sfx = ui.vsplit(sound)
 

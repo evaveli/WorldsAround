@@ -20,5 +20,5 @@ class Size(Component):
 
 @dataclass
 class Sprite(Component):
+    rect: Rect
     uid: TextureId = TextureId(-1) # the id of the sprite in the ImageCache
-    rect: Rect = Rect(0, 0, 0, 0)
