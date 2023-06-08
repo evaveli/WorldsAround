@@ -4,6 +4,7 @@ from pygame import event
 
 from Source.components import Position, Sprite
 from Source.entity import Entity
+from Source.profile import Profile
 from Source.scene import Scene
 from Source.scene_context import SceneContext
 from Source.tilemap import TileMap
@@ -14,19 +15,22 @@ from Source import ui
 
 
 class Level(Scene):
-    def __init__(self, file: str):
+    def __init__(self, file: str, profile: Profile):
         super().__init__()
         self.file = file
         self.objects: list[Entity] = []
-        self.pause = False
+
+        self.profile = profile
         self.dir = (0, 0)  # used for camera movement
+
+        # UI state
+        self.pause = False
 
     def enter(self, ctx: SceneContext):
         self.assets = ctx.assets
         self.images = ctx.images
         self.ctx = ctx.ui
         self.camera = ctx.camera
-        self.controls = ctx.profile.controls
 
         self.map = TileMap.load("./Resources/Maps/" + self.file, self.images)
 
@@ -38,13 +42,13 @@ class Level(Scene):
 
             if event.key == pygame.K_ESCAPE:
                 self.pause = True
-            elif event.key == self.controls.left:
+            elif event.key == self.profile.controls.left:
                 self.dir = (-10, dy)
-            elif event.key == self.controls.right:
+            elif event.key == self.profile.controls.right:
                 self.dir = (10, dy)
-            elif event.key == self.controls.enter_door:
+            elif event.key == self.profile.controls.enter_door:
                 self.dir = (dx, -10)
-            elif event.key == self.controls.down:
+            elif event.key == self.profile.controls.down:
                 self.dir = (dx, 10)
 
         elif event.type == pygame.KEYUP:
@@ -54,7 +58,7 @@ class Level(Scene):
 
         if self.pause:
             self.pause = False
-            return Scene.Push(PauseMenu())
+            return Scene.Push(PauseMenu(self.profile))
 
         return Scene.Continue()
 

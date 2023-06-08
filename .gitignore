@@ -1,5 +1,3 @@
-TODO.md
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -131,5 +129,5 @@ dmypy.json
 .pyre/
 /.idea/
 .vscode/
-/Code/Data/config.json
-/Code/Data/users.json
+TODO.md
+Code/Data/Profiles/*

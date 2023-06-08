@@ -5,14 +5,18 @@ import pygame
 from Source import ui
 from Source.scene import Scene
 from Source.scene_context import SceneContext
+from Source.profile import Profile
 
 from Source.scenes.level import Level
 from Source.scenes.settings import SettingsScene
 
 
 class MainMenu(Scene):
-    def __init__(self):
+    def __init__(self, profile: Profile):
         super().__init__()
+        self.profile = profile
+
+        # UI state
         self.quit = False
         self.to_settings = False
         self.play = False
@@ -28,13 +32,13 @@ class MainMenu(Scene):
 
         if self.quit:
             self.quit = False
-            return Scene.Pop()
+            return Scene.PopAll()
         elif self.to_settings:
             self.to_settings = False
-            return Scene.Push(SettingsScene())
+            return Scene.Push(SettingsScene(self.profile))
         elif self.play:
             self.play = False
-            return Scene.Push(Level("level1.json"))
+            return Scene.Push(Level("level1.json", self.profile))
 
         return Scene.Continue()
 

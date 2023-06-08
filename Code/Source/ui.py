@@ -449,7 +449,11 @@ class Context:
             pct = 0 if pct < 0 else 1 if pct > 1 else pct
             param.value = min + pct * (max - min)
 
+            rect.x += w + 10
+
             return True
+
+        rect.x += w + 10
 
         return False
 

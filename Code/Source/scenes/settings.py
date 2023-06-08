@@ -8,6 +8,7 @@ from Source import ui
 
 from Source.controls import Controls
 from Source.image_cache import TextureId
+from Source.profile import Profile
 from Source.scene import Scene
 from Source.scene_context import SceneContext
 
@@ -16,6 +17,7 @@ class _Colors(Enum):
     IDLE = pygame.Color(0, 0, 0, 0)
     ERROR = pygame.Color(255, 0, 0, 255)
     SELECTED = pygame.Color(0, 0, 0, 255)
+
 
 class _Controls(Enum):
     NONE = -1
@@ -30,14 +32,15 @@ class _Controls(Enum):
 
 
 class SettingsScene(Scene):
-    def __init__(self):
+    def __init__(self, profile: Profile):
         super().__init__()
+        self.profile = profile
+        self.music_volume = ui.Param(profile.bg)
+        self.sfx_volume = ui.Param(profile.sfx)
 
         # UI state
         self.go_back = False
         self.listening = _Controls.NONE.value
-        self.music_volume = ui.Param(0.5)
-        self.sfx_volume = ui.Param(0.5)
 
         self.color_table = [
             _Colors.IDLE,  # enter door
@@ -53,7 +56,9 @@ class SettingsScene(Scene):
         self.assets = ctx.assets
         self.ctx = ctx.ui
         self.camera = ctx.camera
-        self.controls = ctx.profile.controls
+
+    def exit(self):
+        self.profile.save()
 
     def input(self, event: pygame.event.Event) -> Scene.Command:
         # inform the UI context of the event
@@ -63,23 +68,23 @@ class SettingsScene(Scene):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.color_table[self.listening] = _Colors.IDLE
-                elif self.controls.used(event.key) and event.key != self.controls.list()[self.listening]:
+                elif self.profile.controls.used(event.key) and event.key != self.profile.controls.list()[self.listening]:
                     self.color_table[self.listening] = _Colors.ERROR
                 else:
                     if self.listening == _Controls.ENTER_DOOR.value:
-                        self.controls.enter_door = event.key
+                        self.profile.controls.enter_door = event.key
                     elif self.listening == _Controls.LEFT.value:
-                        self.controls.left = event.key
+                        self.profile.controls.left = event.key
                     elif self.listening == _Controls.DOWN.value:
-                        self.controls.down = event.key
+                        self.profile.controls.down = event.key
                     elif self.listening == _Controls.RIGHT.value:
-                        self.controls.right = event.key
+                        self.profile.controls.right = event.key
                     elif self.listening == _Controls.JUMP.value:
-                        self.controls.jump = event.key
+                        self.profile.controls.jump = event.key
                     elif self.listening == _Controls.POWERUP_1.value:
-                        self.controls.powerup_1 = event.key
+                        self.profile.controls.powerup_1 = event.key
                     elif self.listening == _Controls.POWERUP_2.value:
-                        self.controls.powerup_2 = event.key
+                        self.profile.controls.powerup_2 = event.key
 
                 self.listening = -1
                 return Scene.Continue()
@@ -89,6 +94,7 @@ class SettingsScene(Scene):
 
         if self.go_back:
             self.go_back = False
+            self.profile.save()
             return Scene.Pop()
 
         return Scene.Continue()
@@ -154,38 +160,42 @@ class SettingsScene(Scene):
             return self.ctx.button_layout(ui.center(btn), text, self.assets.ARCADE_24, border_color=self.color_table[index.value - 1].value) \
                 and (self.listening == -1 or self.listening == index.value - 1)
 
-        if mapping(enter_door, "Enter  door", key.name(self.controls.enter_door)):
+        if mapping(enter_door, "Enter  door", key.name(self.profile.controls.enter_door)):
             self.listening = _Controls.ENTER_DOOR.value
 
-        if mapping(move_left, "Move  left", key.name(self.controls.left)):
+        if mapping(move_left, "Move  left", key.name(self.profile.controls.left)):
             self.listening = _Controls.LEFT.value
 
-        if mapping(move_down, "Move  down", key.name(self.controls.down)):
+        if mapping(move_down, "Move  down", key.name(self.profile.controls.down)):
             self.listening = _Controls.DOWN.value
 
-        if mapping(move_right, "Move  right", key.name(self.controls.right)):
+        if mapping(move_right, "Move  right", key.name(self.profile.controls.right)):
             self.listening = _Controls.RIGHT.value
 
         jump, powerup_1, powerup_2, _ = ui.vsplit_n(right, 4)
 
-        if mapping(jump, "Jump", key.name(self.controls.jump)):
+        if mapping(jump, "Jump", key.name(self.profile.controls.jump)):
             self.listening = _Controls.JUMP.value
 
-        if mapping(powerup_1, "Powerup  1", key.name(self.controls.powerup_1)):
+        if mapping(powerup_1, "Powerup  1", key.name(self.profile.controls.powerup_1)):
             self.listening = _Controls.POWERUP_1.value
 
-        if mapping(powerup_2, "Powerup  2", key.name(self.controls.powerup_2)):
+        if mapping(powerup_2, "Powerup  2", key.name(self.profile.controls.powerup_2)):
             self.listening = _Controls.POWERUP_2.value
 
         if self.ctx.button_layout(ui.center(reset), "Reset", self.assets.ARCADE_24):
             defc = Controls.default()
-            self.controls.enter_door = defc.enter_door
-            self.controls.left = defc.left
-            self.controls.down = defc.down
-            self.controls.right = defc.right
-            self.controls.jump = defc.jump
-            self.controls.powerup_1 = defc.powerup_1
-            self.controls.powerup_2 = defc.powerup_2
+            self.profile.controls.enter_door = defc.enter_door
+            self.profile.controls.left = defc.left
+            self.profile.controls.down = defc.down
+            self.profile.controls.right = defc.right
+            self.profile.controls.jump = defc.jump
+            self.profile.controls.powerup_1 = defc.powerup_1
+            self.profile.controls.powerup_2 = defc.powerup_2
+
+            # sound
+            self.profile.bg = 0.5
+            self.profile.sfx = 0.5
 
         bg, sfx = ui.vsplit(sound)
 
@@ -201,14 +211,27 @@ class SettingsScene(Scene):
 
             ui.cut_left(rect, 30)
 
-            return self.ctx.slider(rect, param, 0, 1)
+            changed = self.ctx.slider(rect, param, 0, 1)
+
+            ui.cut_left(rect, 10)
+
+            self.ctx.text(rect, f"{param.value * 100:.0f}",
+                                 self.assets.ARCADE_24)
+
+            return changed
+        
+        self.music_volume = ui.Param(self.profile.bg)
 
         if volume_slider(bg, self.music_volume, self.assets.MUSIC_ICON):
             # change bg volume
+            self.profile.bg = self.music_volume.value
             pass
+
+        self.sfx_volume = ui.Param(self.profile.sfx)
 
         if volume_slider(sfx, self.sfx_volume, self.assets.SOUNDS_ICON):
             # change sfx volume
+            self.profile.sfx = self.sfx_volume.value
             pass
 
     def draw(self):
