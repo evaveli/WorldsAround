@@ -347,7 +347,6 @@ class Context:
         # pygame.display.get_surface().blit(img, area)
         self._commands.append(_DrawImage(area, uid))
 
-    # TODO: specify font id + size
     def text(
             self,
             rect: pygame.Rect, text: str,

@@ -4,10 +4,6 @@ from dataclasses import dataclass
 import pygame
 
 
-# TODO:
-# store controls configuration in a "action": int-key mapping
-# no two actions can have the same key
-
 Key = int
 """
 A key on the keyboard.

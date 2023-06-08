@@ -3,12 +3,11 @@ from dataclasses import dataclass
 import json
 from typing import Callable, NewType
 
+from Source.components import *
 from Source.entity import Component, Entity
 from Source.entity_list import EntityList
 from Source.image_cache import ImageCache, TextureId
 
-# TODO:
-# objects and layers would be nice
 
 """
     map format specification
@@ -103,7 +102,10 @@ class TileMap:
             data = json.load(handle)
 
             bg = data.get("background", None)
-            ts = json.load(open("./Resources/Maps/" + data["tileset"], "r"))
+
+            f = open("./Resources/Maps/" + data["tileset"], "r")
+            ts = json.load(f)
+            f.close() # close the file to avoid any leaks
 
             return TileMap(
                 name=data["name"],
@@ -125,9 +127,27 @@ class TileMap:
                     TileId(int(tile)) for tile in data["tiles"]
                 ],
                 objects=EntityList(
-                    Entity(
-                        parser(name) for name in obj["properties"].keys()
+                    Entity([
+                        Position(
+                            x=float(obj["offset"]["x"]),
+                            y=float(obj["offset"]["y"]),
+                        ),
+                        Size(
+                            w=int(obj["area"][2]),
+                            h=int(obj["area"][3]),
+                        ),
+                        Sprite(
+                            rect=Rect(
+                                int(obj["area"][0] * obj["area"][2]),
+                                int(obj["area"][1] * obj["area"][3]),
+                                int(obj["area"][2]),
+                                int(obj["area"][3]),
+                            ),
+                            uid=images.load(obj["image"]),
+                        )] +
+                        [parser(name)
+                         for name in obj.get("properties", {}).keys()]
                     )
-                    for obj in data["objects"]
-                ) if "objects" in data else EntityList()
+                    for obj in data.get("objects", [])
+                )
             )

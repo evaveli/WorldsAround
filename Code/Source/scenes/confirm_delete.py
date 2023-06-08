@@ -34,7 +34,7 @@ class ConfirmDelete(Scene):
     def update(self, dt: int):
         rect = pygame.display.get_surface().get_rect()
 
-        ui.cut_top(rect, 100)
+        ui.cut_top(rect, 200)
 
         head, body = ui.cut_top(rect, 150)
 

@@ -5,8 +5,6 @@ from pathlib import Path
 from Source.controls import Controls
 from Source import ui
 
-# TODO: Profile.create(file: str) -> Profile
-
 
 class Profile:
     name: str

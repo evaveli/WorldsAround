@@ -7,7 +7,6 @@ from pygame import key
 from Source import ui
 
 from Source.controls import Controls
-from Source.image_cache import TextureId
 from Source.profile import Profile
 from Source.scene import Scene
 from Source.scene_context import SceneContext
@@ -199,7 +198,7 @@ class SettingsScene(Scene):
 
         bg, sfx = ui.vsplit(sound)
 
-        def volume_slider(rect: pygame.Rect, param: ui.Param[float], img: TextureId) -> bool:
+        def volume_slider(rect: pygame.Rect, text: str, param: ui.Param[float]) -> bool:
             ui.cut_top(rect, 20)
             ui.cut_left(rect, 20)
             ui.cut_right(rect, 20)
@@ -207,7 +206,7 @@ class SettingsScene(Scene):
 
             _, rect = ui.hsplit_pct(rect, 0.27)
 
-            self.ctx.image(rect, img)
+            self.ctx.text(rect, text, self.assets.ARCADE_24)
 
             ui.cut_left(rect, 30)
 
@@ -216,22 +215,27 @@ class SettingsScene(Scene):
             ui.cut_left(rect, 10)
 
             self.ctx.text(rect, f"{param.value * 100:.0f}",
-                                 self.assets.ARCADE_24)
+                          self.assets.ARCADE_24)
 
             return changed
-        
+
+        ui.cut_left(bg, 14)
+
         self.music_volume = ui.Param(self.profile.bg)
 
-        if volume_slider(bg, self.music_volume, self.assets.MUSIC_ICON):
+        if volume_slider(bg, "BG", self.music_volume):
             # change bg volume
             self.profile.bg = self.music_volume.value
+            pygame.mixer.music.set_volume(self.profile.bg)
             pass
 
         self.sfx_volume = ui.Param(self.profile.sfx)
 
-        if volume_slider(sfx, self.sfx_volume, self.assets.SOUNDS_ICON):
+        if volume_slider(sfx, "SFX", self.sfx_volume):
             # change sfx volume
             self.profile.sfx = self.sfx_volume.value
+            # TODO: change sfx volume
+            # pygame.mixer.Sound.set_volume(self.profile.sfx)
             pass
 
     def draw(self):

@@ -2,7 +2,7 @@
 import pygame
 from pygame import event
 
-from Source.components import Position, Sprite
+from Source.components import *
 from Source.entity import Entity
 from Source.profile import Profile
 from Source.scene import Scene
@@ -33,6 +33,8 @@ class Level(Scene):
         self.camera = ctx.camera
 
         self.map = TileMap.load("./Resources/Maps/" + self.file, self.images)
+        self.objects = self.map.objects.entities
+        pygame.mixer.music.play(-1)
 
     def input(self, event: event.Event) -> Scene.Command:
         self.ctx.feed(event)
@@ -71,7 +73,7 @@ class Level(Scene):
         ui.cut_top(rect, 20)
 
         self.pause = self.ctx.button(
-            rect, "Pause", text_color=pygame.Color(255, 255, 255))
+            rect, "Pause", self.assets.ARCADE_24, text_color=pygame.Color(255, 255, 255))
 
     def draw(self):
         if self.map.background is not None:
@@ -81,13 +83,14 @@ class Level(Scene):
         tile_count = len(self.map.tiles)
 
         map_w = self.map.width
-        map_h = tile_count // self.map.width
+        map_h = tile_count // map_w
 
-        offset = (0, -200)
-        scale = 5
+        offset = (0, 0)
+        scale = (pygame.display.get_surface(
+        ).get_height() // map_h) / tile_size[1]
 
         ts = self.images.unsafe_get(self.map.tileset.image)
-        ts = pygame.transform.smoothscale_by(ts, scale)
+        ts = pygame.transform.scale_by(ts, scale)
 
         for j in range(map_h):
             for i in range(map_w):
@@ -105,8 +108,8 @@ class Level(Scene):
                 )
 
                 dst = (
-                    tile_size[0] * i * scale + offset[0],
-                    tile_size[1] * j * scale + offset[1],
+                    int(tile_size[0] * i * scale + offset[0]),
+                    int(tile_size[1] * j * scale + offset[1]),
                 )
 
                 # TODO:
@@ -118,13 +121,14 @@ class Level(Scene):
         for obj in self.objects:
             sprite = obj.get(Sprite)
             pos = obj.get(Position) or Position(0, 0)
+            size = obj.get(Size) or Size(1, 1)
 
             if sprite is not None:
-                # TODO: is this safe?
-                # it should be, given that the mapping
-                # is passed from the code, not the map
-                tex = self.images.unsafe_get(sprite.uid)
-                self.camera.render_at(tex, sprite.rect.move(pos.x, pos.y))
+                tex = self.images.unsafe_get(
+                    sprite.uid).subsurface(sprite.rect)
+                tex = pygame.transform.scale_by(tex, scale)
+                self.camera.render(
+                    tex, (int(tile_size[0] * pos.x * scale), int(tile_size[1] * pos.y * scale)))
 
         # render UI
         self.ctx.draw(self.camera.screen)
