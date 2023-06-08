@@ -40,4 +40,4 @@ class Controls:
         return key in self.__dict__.values()
 
     def list(self) -> list[Key]:
-        return [self.enter_door, self.left, self.right, self.down, self.jump, self.powerup_1, self.powerup_2]
+        return [self.enter_door, self.left, self.down, self.right,  self.jump, self.powerup_1, self.powerup_2]

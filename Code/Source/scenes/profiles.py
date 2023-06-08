@@ -3,12 +3,19 @@ import pygame
 
 from Source import ui
 
+from Source.profile import Profile
 from Source.scene import Scene, SceneContext
+
+from Source.scenes.confirm_delete import ConfirmDelete
+from Source.scenes.mainmenu import MainMenu
 
 
 class ProfileScene(Scene):
     def __init__(self):
         super().__init__()
+        self.profile = -1
+        self.remove = -1
+
         # UI state
         self.go_back = False
 
@@ -24,6 +31,14 @@ class ProfileScene(Scene):
         if self.go_back:
             self.go_back = False
             return Scene.Pop()
+        elif self.profile != -1:
+            profile = Profile.load(f"Profile{self.profile}.json")
+            self.profile = -1
+            return Scene.Push(MainMenu(profile))
+        elif self.remove != -1:
+            rem = self.remove
+            self.remove = -1
+            return Scene.Push(ConfirmDelete(rem))
 
         return Scene.Continue()
 
@@ -40,25 +55,22 @@ class ProfileScene(Scene):
         self.ctx.text_layout(ui.center(head), "Profiles",
                              self.assets.ARCADE_48)
 
-        ui.cut_left(head, 10)
-        ui.cut_top(head, 10)
-
-        if self.ctx.button(head, "Back", self.assets.ARCADE_24):
-            self.go_back = True
-            return
-
-        ui.cut_top(body, 20)
-        ui.cut_left(body, 350)
+        ui.cut_top(body, 150)
 
         # body
-        profile1, profile2, profile3 = ui.vsplit_n(body, 3)
+        profiles = ui.hsplit_n(body, 3)
 
-        if self.ctx.button(profile1, "Profile 1", self.assets.ARCADE_24):
-            pass
-        if self.ctx.button(profile2, "Profile 2", self.assets.ARCADE_24):
-            pass
-        if self.ctx.button(profile3, "Profile 3", self.assets.ARCADE_24):
-            pass
+        for i in range(1, 4):
+            exists = Profile.exists(f"Profile{i}.json")
+            name = f"Profile  {i}" if exists else "NEW GAME"
+
+            top, bottom = ui.vsplit_n(profiles[i - 1], 2)
+
+            if self.ctx.button_layout(ui.center(top), name, self.assets.ARCADE_24):
+                self.profile = i
+
+            if exists and self.ctx.button_layout(ui.center(bottom), "DELETE", self.assets.ARCADE_24, pygame.Color(255, 0, 0)):
+                self.remove = i
 
     def draw(self):
         # render UI

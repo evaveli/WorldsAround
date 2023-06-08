@@ -3,6 +3,7 @@
 import pygame
 
 from Source import ui
+from Source.profile import Profile
 from Source.scene import Scene
 from Source.scene_context import SceneContext
 
@@ -10,12 +11,15 @@ from Source.scenes.settings import SettingsScene
 
 
 class PauseMenu(Scene):
-    def __init__(self):
+    def __init__(self, profile: Profile):
         super().__init__()
+        self.profile = profile
+        # UI state
         self.resume = False
         self.restart = False
         self.to_settings = False
         self.quit = False
+
 
     def enter(self, ctx: SceneContext):
         self.assets = ctx.assets
@@ -35,7 +39,7 @@ class PauseMenu(Scene):
             return Scene.Pop()
         elif self.to_settings:
             self.to_settings = False
-            return Scene.Push(SettingsScene())
+            return Scene.Push(SettingsScene(self.profile))
         elif self.quit:
             self.quit = False
             return Scene.PopAll()

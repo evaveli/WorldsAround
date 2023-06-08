@@ -33,5 +33,3 @@ class SceneContext:
         self.ui = ui.Context(self.images, self.fonts)
 
         self.camera = Camera(pygame.display.get_surface())
-        self.profile = Profile.temporary()
-        # TODO: add active player profile
