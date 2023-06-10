@@ -32,7 +32,8 @@ class App:
         """
         Run the application.
         """
-        pygame.mixer.pre_init(44100, -16, 2, 2048) # pre-init mixer to avoid sound lag
+        pygame.mixer.pre_init(
+            44100, -16, 2, 2048)  # pre-init mixer to avoid sound lag
 
         pygame.init()
         pygame.mixer.init()
@@ -42,6 +43,8 @@ class App:
 
         director = Director()
         director.push(self.start_scene)
+
+        last = pygame.time.get_ticks()
 
         while True:
             for event in pygame.event.get():
@@ -53,7 +56,11 @@ class App:
 
             screen.fill((255, 255, 255))
 
-            director.update(pygame.time.get_ticks())
+            now = pygame.time.get_ticks()
+            dt = now - last
+            last = now
+
+            director.update(dt)
             director.draw()
 
             pygame.display.update()

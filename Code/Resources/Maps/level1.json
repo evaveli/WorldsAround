@@ -1,8 +1,8 @@
 {
     "name": "level_1",
+    "background": "bg.jpg",
     "width": 10,
     "tileset": "level1.ts.json",
-    "objectset": "level1.os.json",
     "tiles": [
         0,
         0,
@@ -119,13 +119,52 @@
                 "y": 7
             },
             "properties": {
-                "type": "player"
+                "name": "player",
+                "type": "player",
+                "animations": {
+                    "idle_right": {
+                        "start": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "frames": 1,
+                        "duration": 1000,
+                        "loop": true
+                    },
+                    "idle_left": {
+                        "start": {
+                            "x": 0,
+                            "y": 1
+                        },
+                        "frames": 1,
+                        "duration": 1000,
+                        "loop": true
+                    },
+                    "walk_right": {
+                        "start": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "frames": 4,
+                        "duration": 1000,
+                        "loop": true
+                    },
+                    "walk_left": {
+                        "start": {
+                            "x": 0,
+                            "y": 1
+                        },
+                        "frames": 4,
+                        "duration": 1000,
+                        "loop": true
+                    }
+                }
             }
         },
         {
             "image": "tiles_and_enemies.png",
             "area": [
-                12,
+                11,
                 15,
                 8,
                 8
@@ -135,7 +174,45 @@
                 "y": 8
             },
             "properties": {
-                "type": "green_slime"
+                "name": "green_slime",
+                "type": "enemy",
+                "patrol": {
+                    "range": 2,
+                    "duration": 2000
+                },
+                "animations": {
+                    "idle_left": {
+                        "start": {
+                            "x": 11,
+                            "y": 16
+                        },
+                        "frames": 3,
+                        "duration": 1000,
+                        "loop": true
+                    },
+                    "idle_right": {
+                        "start": {
+                            "x": 11,
+                            "y": 15
+                        },
+                        "frames": 3,
+                        "duration": 1000,
+                        "loop": true
+                    }
+                }
+            }
+        },
+        {
+            "image": "player.png",
+            "area": [
+                13,
+                5,
+                8,
+                8
+            ],
+            "offset": {
+                "x": 9,
+                "y": 8
             }
         }
     ]

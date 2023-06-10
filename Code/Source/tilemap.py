@@ -1,7 +1,7 @@
 
 from dataclasses import dataclass
 import json
-from typing import Callable, NewType
+from typing import Any, Callable, NewType
 
 from Source.components import *
 from Source.entity import Component, Entity
@@ -43,7 +43,7 @@ NULL_TILE = 0
 """
 
 
-PropertyParser = Callable[[str], Component]
+PropertyParser = Callable[[str, Any], Component]
 """
     A property parser is a mapping from property name to a parsed component for an object.
 """
@@ -71,6 +71,7 @@ class Tileset:
     name: str
     image: TextureId
     tile_size: tuple[int, int]
+    colorkey: tuple[int, int, int] | None
     tiles: dict[TileId, Tile]
 
 
@@ -87,7 +88,7 @@ class TileMap:
     objects: EntityList
 
     @staticmethod
-    def __default_property_parser(name: str) -> Component:
+    def __default_property_parser(name: str, value: str) -> Component:
         """
             The default property parser.
         """
@@ -101,11 +102,12 @@ class TileMap:
         with open(file, "r") as handle:
             data = json.load(handle)
 
-            bg = data.get("background", None)
+            img = data.get("background", None)
+            bg = images.load(img)
 
             f = open("./Resources/Maps/" + data["tileset"], "r")
             ts = json.load(f)
-            f.close() # close the file to avoid any leaks
+            f.close()  # close the file to avoid any leaks
 
             return TileMap(
                 name=data["name"],
@@ -115,6 +117,7 @@ class TileMap:
                     name=ts["name"],
                     image=images.load(ts["image"]),
                     tile_size=ts["tile_size"],
+                    colorkey=ts.get("colorkey", None),
                     tiles={
                         TileId(int(tile["tid"])): Tile(
                             offset=tile["offset"],
@@ -145,8 +148,8 @@ class TileMap:
                             ),
                             uid=images.load(obj["image"]),
                         )] +
-                        [parser(name)
-                         for name in obj.get("properties", {}).keys()]
+                        [parser(name, value)
+                         for name, value in obj.get("properties", {}).items()]
                     )
                     for obj in data.get("objects", [])
                 )
