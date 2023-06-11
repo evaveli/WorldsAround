@@ -83,6 +83,7 @@ class TileMap:
     name: str
     background: TextureId | None
     width: int
+    height: int
     tileset: Tileset
     tiles: list[TileId]
     objects: EntityList
@@ -112,7 +113,8 @@ class TileMap:
             return TileMap(
                 name=data["name"],
                 background=bg,
-                width=int(data["width"]),
+                width=len(data["tiles"]) // int(data["height"]),
+                height=int(data["height"]),
                 tileset=Tileset(
                     name=ts["name"],
                     image=images.load(ts["image"]),

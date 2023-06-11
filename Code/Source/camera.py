@@ -10,11 +10,11 @@ class Camera:
     def visible(self, area: pygame.Rect) -> bool:
         return self.area.colliderect(area)
 
-    def move_by(self, dx: int, dy: int):
-        self.area.move_ip(dx, dy)
+    # def move_by(self, dx: int, dy: int):
+    #     self.area.move_ip(dx, dy)
 
-    def center_on(self, x: int, y: int):
-        self.area.center = (x, y)
+    # def center_on(self, x: int, y: int):
+    #     self.area.center = (x, y)
 
     def render(self, image: pygame.Surface, dst: tuple[int, int] = (0, 0), area: pygame.Rect | None = None):
         # TODO: recheck this

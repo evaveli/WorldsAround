@@ -271,6 +271,7 @@ class _DrawText:
 class _DrawImage:
     rect: pygame.Rect
     uid: TextureId
+    crop: pygame.Rect | None = None
 
 
 _Command = _DrawRect | _DrawText | _DrawImage
@@ -321,7 +322,7 @@ class Context:
 
     # widgets
 
-    def image(self, rect: pygame.Rect, uid: TextureId):
+    def image(self, rect: pygame.Rect, uid: TextureId, crop: pygame.Rect | None = None):
         """
         Draws an image at the given rect.
         """
@@ -332,10 +333,9 @@ class Context:
         img_rect = img.get_rect()
         area, rect = cut_left(rect, int(rect.h * (img_rect.w / img_rect.h)))
 
-        # pygame.display.get_surface().blit(img, area)
-        self._commands.append(_DrawImage(area, uid))
+        self._commands.append(_DrawImage(area, uid, crop))
 
-    def image_layout(self, layout: Layout, uid: TextureId):
+    def image_layout(self, layout: Layout, uid: TextureId, crop: pygame.Rect | None = None):
         """
         Draws an image with the given layout.
         """
@@ -344,8 +344,7 @@ class Context:
             return
 
         area = rectget(layout.rect, img.get_rect().w, layout.direction)
-        # pygame.display.get_surface().blit(img, area)
-        self._commands.append(_DrawImage(area, uid))
+        self._commands.append(_DrawImage(area, uid, crop))
 
     def text(
             self,
@@ -468,6 +467,9 @@ class Context:
                 screen.blit(cmd.text, cmd.rect)
             elif isinstance(cmd, _DrawImage):
                 img = self._images.unsafe_get(cmd.uid)
+                if cmd.crop is not None:
+                    img = img.subsurface(cmd.crop)
+
                 aspect = img.get_rect().w / img.get_rect().h
 
                 scale = (int(cmd.rect.h * aspect), cmd.rect.h)

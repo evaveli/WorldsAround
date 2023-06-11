@@ -25,6 +25,9 @@ class PauseMenu(Scene):
         self.assets = ctx.assets
         self.ctx = ctx.ui
         self.camera = ctx.camera
+        self.game = ctx
+
+        pygame.mixer.music.pause()
 
     def input(self, event: pygame.event.Event) -> Scene.Command:
         # inform the UI context of the event
@@ -35,6 +38,7 @@ class PauseMenu(Scene):
             return Scene.Pop()
         elif self.restart:
             self.restart = False
+            self.game.restart = True
             # TODO: restart the level
             return Scene.Pop()
         elif self.to_settings:

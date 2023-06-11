@@ -1,7 +1,8 @@
 
+
 from Source.components import *
 from Source.entity_list import EntityList
-from Source.profile import Profile
+from Source.controls import Controls
 
 
 class Player(Component):
@@ -11,26 +12,26 @@ class Player(Component):
     pass
 
 
-class PlayerSystem:
-    @staticmethod
-    def run(entities: EntityList, dt: int, *, key: int, profile: Profile):
-        for _, anim, pos, sprite in entities.query(Player, Animator, Position, Sprite).types():
-            dir = (0, 0)
+ACCEL = (0.5, 60)
 
-            if key == profile.controls.left:
-                dir = (-10, 0)
-                anim.transition("walk_left")  # type: ignore
-                sprite.flip = True
-            elif key == profile.controls.right:
-                dir = (10, 0)
-                anim.transition("walk_right")  # type: ignore
-                sprite.flip = False
 
-            active = anim.anims[anim.active]
+def update_player(entities: EntityList, dt: int, *,
+                  key: int, controls: Controls):
+    """
+    A system that handles player logic.
+    """
 
-            sprite.rect.x = active.start[0] + \
-                active.frames * (anim.elapsed // active.duration)
-            sprite.rect.y = active.start[1]
+    # input handling
+    for _, vel, anim, sprite in entities.query(Player, Velocity, Animator, Sprite).types():
+        if key == controls.left:
+            vel.x -= ACCEL[0]
+            anim.transition("walk_left")
+            sprite.flip = True
+        if key == controls.right:
+            vel.x += ACCEL[0]
+            anim.transition("walk_right")
+            sprite.flip = False
+        if key == controls.jump and vel.y == 0:
+            vel.y -= ACCEL[1]
 
-            pos.x += dir[0] * (dt / 1000)
-            pos.y += dir[1] * (dt / 1000)
+        vel.x = max(-100, min(100, vel.x))

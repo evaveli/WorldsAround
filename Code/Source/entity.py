@@ -21,17 +21,17 @@ class Entity:
         """
         self.components = {type(c).__name__: c for c in comps}
 
-    def get(self, kind: Type[_Comp]) -> Type[_Comp] | None:
+    def get(self, kind: Type[_Comp]) -> _Comp | None:
         """
         Get a component of the given type. Returns None if the entity does not have the component.
         """
-        return cast(Type[_Comp] | None, self.components.get(kind.__name__))
+        return cast(_Comp | None, self.components.get(kind.__name__))
 
-    def unsafe_get(self, kind: Type[_Comp]) -> Type[_Comp]:
+    def unsafe_get(self, kind: Type[_Comp]) -> _Comp:
         """
         Get a component of the given type. Raises KeyError if the entity does not have the component.
         """
-        return cast(Type[_Comp], self.components[kind.__name__])
+        return cast(_Comp, self.components[kind.__name__])
 
     def add(self, value: Component):
         """
@@ -47,3 +47,6 @@ class Entity:
             return all(k.__name__ in self.components for k in kind)
         else:
             return kind.__name__ in self.components
+
+    def remove(self, kind: Type[_Comp]):
+        self.components.pop(kind.__name__, None)

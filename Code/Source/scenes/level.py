@@ -12,11 +12,19 @@ from Source.tilemap import TileMap
 
 from Source.scenes.game_over import GameOver
 from Source.scenes.pause_menu import PauseMenu
+from Source.scenes.livesscene import LivesScene
 
+from Source.systems.animations import *
 from Source.systems.enemies import *
 from Source.systems.player import *
+from Source.systems.physics import *
+from Source.systems.gravity import *
 
 from Source import ui
+
+# TODO:
+# lives
+# powerup: shield
 
 
 @dataclass
@@ -69,15 +77,21 @@ def parse(key: str, value: Any) -> Component:
     return _UnknownComponent(key)
 
 
+DUMMY_EVENT = pygame.event.Event(pygame.USEREVENT, kind="dummy")
+
+
 class Level(Scene):
     def __init__(self, file: str, profile: Profile):
         super().__init__()
         self.file = file
-
         self.profile = profile
+
+        self.lives = 3  # number of tries left
+
         # UI state
         self.pause = False
         self.game_over = False
+        self.died = False
 
         self.dirty: set[TextureId] = set()
 
@@ -88,20 +102,32 @@ class Level(Scene):
         self.camera = ctx.camera
 
         self.dir = (0, 0)  # used for movement
-        self.timer = 0
         self.key = -1  # last key pressed
 
-        self.map = TileMap.load(
-            "./Resources/Maps/" + self.file, self.images, parse)
+        if ctx.restart:
+            ctx.restart = False
 
-        if self.map.background is not None and self.map.background not in self.dirty:
-            bg = self.images.unsafe_get(self.map.background)
-            bg.fill((80, 80, 80), special_flags=pygame.BLEND_SUB)
-            self.dirty.add(self.map.background)
+            self.timer = 0
 
-        if self.map.tileset.colorkey is not None:
-            self.images.unsafe_get(self.map.tileset.image).set_colorkey(
-                self.map.tileset.colorkey)
+            self.map = TileMap.load(
+                "./Resources/Maps/" + self.file, self.images, parse)
+
+            for obj in self.map.objects.all():
+                obj.add(Velocity(0, 0))
+
+            for obj in self.map.objects.query(Enemy).ids():
+                obj.add(Active())
+
+            if self.map.background is not None and self.map.background not in self.dirty:
+                bg = self.images.unsafe_get(self.map.background)
+                bg.fill((80, 80, 80), special_flags=pygame.BLEND_SUB)
+                self.dirty.add(self.map.background)
+
+            if self.map.tileset.colorkey is not None:
+                self.images.unsafe_get(self.map.tileset.image).set_colorkey(
+                    self.map.tileset.colorkey)
+
+            pygame.mixer.music.rewind()
 
         pygame.mixer.music.play(-1)
 
@@ -120,8 +146,18 @@ class Level(Scene):
         if self.pause:
             self.pause = False
             return Scene.Push(PauseMenu(self.profile))
-        elif self.game_over:
+        elif self.died:
+            self.died = False
+            self.lives -= 1
+
+            if self.lives <= 0:
+                self.game_over = True
+            else:
+                return Scene.Push(LivesScene(self.lives))
+
+        if self.game_over:
             self.game_over = False
+            self.lives = 4
             return Scene.Push(GameOver())
 
         return Scene.Continue()
@@ -129,18 +165,51 @@ class Level(Scene):
     def update(self, dt: int):
         self.timer += dt
         if self.timer // 1000 >= 999:
-            self.game_over = True
+            self.died = True
+            pygame.event.post(DUMMY_EVENT)
             return
 
         # Game Logic
-        PlayerSystem.run(self.map.objects, dt,
-                         key=self.key, profile=self.profile)
-        EnemiesSystem.run(self.map.objects, dt)
 
-        for anim in self.map.objects.query(Animator).types():
-            anim.elapsed += dt
-            if anim.anims[anim.active].duration >= anim.elapsed and anim.anims[anim.active].loop:
-                anim.elapsed = 0
+        update_animations(self.map.objects, dt)
+
+        mark_visible_enemies(
+            self.map.objects, self.camera.area,
+            self.map.tileset.tile_size, (self.map.width, self.map.height),
+        )
+
+        update_enemies(self.map.objects, dt)
+        update_player(
+            self.map.objects, dt,
+            key=self.key, controls=self.profile.controls,
+        )
+
+        gravity(self.map.objects)
+
+        update_physics(
+            self.map.objects, dt,
+            tile_size=self.map.tileset.tile_size,
+            tiles=self.map.tiles,
+            map_w=self.map.width, map_h=self.map.height,
+        )
+
+        for _, pos, size in self.map.objects.query(Player, Position, Size).types():
+            scale = size.h / self.map.tileset.tile_size[1]
+
+            if pos.y + scale >= self.map.height:
+                self.died = True
+                pygame.event.post(DUMMY_EVENT)
+                return
+
+            cam = self.camera.area
+
+            dstx = cam.center[0] - pos.x
+            dsty = cam.center[1] - pos.y
+
+            if abs(dstx) > cam.w * 0.75 or abs(dsty) > cam.h * 0.75:
+                self.camera.area.x = int(pos.x) - cam.w // 2
+                self.camera.area.y = int(pos.y) - cam.h // 2
+            # self.camera.center_on(int(pos.x), int(pos.y))
 
         # UI
         pygame.display.get_surface().fill((0, 0, 0))
@@ -153,6 +222,18 @@ class Level(Scene):
 
         self.pause = self.ctx.button(
             rect, "Pause", self.assets.ARCADE_24, text_color=pygame.Color(255, 255, 255))
+
+        rect, _ = ui.cut_top(rect, 20)
+
+        ui.cut_left(rect, 50)
+
+        self.ctx.image(
+            rect, self.assets.ITEMS, pygame.Rect(0, 0, 16, 16))
+
+        l, x = ui.cut_left(rect, 16)
+
+        self.ctx.text(x, f"x {self.lives}", self.assets.ARCADE_24,
+                      color=pygame.Color(255, 255, 255))
 
         self.ctx.text_layout(
             ui.right(rect), f"{(self.timer//1000):>03}",
@@ -169,10 +250,9 @@ class Level(Scene):
             self.camera.render(bg)
 
         tile_size = self.map.tileset.tile_size
-        tile_count = len(self.map.tiles)
 
         map_w = self.map.width
-        map_h = tile_count // map_w
+        map_h = self.map.height
 
         offset = (0, 0)
         scale = (pygame.display.get_surface(
@@ -208,7 +288,7 @@ class Level(Scene):
                 self.camera.render(ts, dst, area)
 
         # render objects
-        for sprite, pos, size in self.map.objects.query(Sprite, Position, Size).types():
+        for sprite, pos in self.map.objects.query(Sprite, Position).types():
             tex = self.images.unsafe_get(
                 sprite.uid).subsurface(sprite.rect)
             tex = pygame.transform.scale_by(tex, scale)
@@ -218,6 +298,15 @@ class Level(Scene):
 
             self.camera.render(
                 tex, (int(tile_size[0] * pos.x * scale), int(tile_size[1] * pos.y * scale)))
+
+        for _, _, pos, size in self.map.objects.query(Enemy, Active, Position, Size).types():
+            pygame.draw.rect(
+                pygame.display.get_surface(),
+                (255, 0, 0),
+                (tile_size[0] * pos.x * scale, tile_size[1] *
+                 pos.y * scale, size.w * scale, size.h * scale),
+                1,
+            )
 
         # render UI
         self.ctx.draw(self.camera.screen)
