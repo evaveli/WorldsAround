@@ -9,7 +9,9 @@ class _TypeIter:
         self.filters = fs
 
     def ids(self):
-        return self.entities
+        for entity in self.entities:
+            if entity.has(self.filters):
+                yield entity
 
     def types(self):
         if len(self.filters) == 1:

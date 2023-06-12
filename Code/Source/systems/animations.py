@@ -14,5 +14,6 @@ def update_animations(entities: EntityList, dt: int):
         active = anim.anims[anim.active]
 
         sprite.rect.x = (active.start[0] +
-                         active.frames * (anim.elapsed / active.duration)) * size.w
+                         active.frames * (anim.elapsed / active.duration)) * sprite.rect.w
+        # print(f"got x at {sprite.rect.x}")
         sprite.rect.y = active.start[1] * size.h

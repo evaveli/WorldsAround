@@ -12,14 +12,6 @@ class Enemy(Component):
     """
     pass
 
-
-class Active(Component):
-    """
-    A component that marks an enemy as active.
-    """
-    pass
-
-
 @dataclass
 class PatrolRange(Component):
     """
@@ -31,30 +23,31 @@ class PatrolRange(Component):
     left: bool = False
 
 
-def mark_visible_enemies(
-    entities: EntityList, area: pygame.Rect,
-        tile_size: tuple[int, int], map_size: tuple[int, int]):
-    """
-    A system that marks enemies as active if they are visible.
-    """
-    for obj in entities.query(Enemy, Active).ids():
-        obj.remove(Active)
+# def mark_visible_enemies(
+#     entities: EntityList, area: pygame.Rect,
+#         tile_size: tuple[int, int], map_size: tuple[int, int]):
+#     """
+#     A system that marks enemies as active if they are visible.
+#     """
+#     # pass
+#     for obj in entities.query(Enemy, Active).ids():
+#         obj.remove(Active)
 
-    scale = (map_size[0] * tile_size[0], map_size[1] * tile_size[1])
+#     scale = (map_size[0] * tile_size[0], map_size[1] * tile_size[1])
 
-    camera = pygame.Rect(area.x / scale[0], area.y / scale[1],
-                            area.w / scale[0], area.h / scale[1])
+#     camera = pygame.Rect(area.x / scale[0], area.y / scale[1],
+#                             area.w / scale[0], area.h / scale[1])
 
-    for obj in entities.query(Enemy, Position, Size).ids():
-        pos = obj.unsafe_get(Position)
-        size = obj.unsafe_get(Size)
+#     for obj in entities.query(Enemy, Position, Size).ids():
+#         pos = obj.unsafe_get(Position)
+#         size = obj.unsafe_get(Size)
 
-        rect = pygame.Rect(pos.x, pos.y, size.w, size.h)
+#         rect = pygame.Rect(pos.x, pos.y, size.w / tile_size[0], size.h / tile_size[1])
 
-        # print(f"rect: {rect}, camera: {camera}")
+#         print(f"rect: {rect}, camera: {camera}")
 
-        if rect.colliderect(camera):
-            obj.add(Active)
+#         if camera.colliderect(rect):
+#             obj.add(Active())
 
 
 def update_enemies(entities: EntityList, dt: int):

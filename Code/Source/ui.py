@@ -322,7 +322,8 @@ class Context:
 
     # widgets
 
-    def image(self, rect: pygame.Rect, uid: TextureId, crop: pygame.Rect | None = None):
+    def image(self, rect: pygame.Rect, uid: TextureId, crop: pygame.Rect | None = None, *,
+              border_color: pygame.Color | None = None, border_width: int = 0):
         """
         Draws an image at the given rect.
         """
@@ -335,7 +336,12 @@ class Context:
 
         self._commands.append(_DrawImage(area, uid, crop))
 
-    def image_layout(self, layout: Layout, uid: TextureId, crop: pygame.Rect | None = None):
+        if border_color is not None:
+            area = area.inflate(border_width * 2 + 6, border_width * 2 + 6)
+            self._commands.append(_DrawRect(area, border_color, border_width))
+
+    def image_layout(self, layout: Layout, uid: TextureId, crop: pygame.Rect | None = None, *,
+                     border_color: pygame.Color | None = None, border_width: int = 0):
         """
         Draws an image with the given layout.
         """
@@ -345,6 +351,13 @@ class Context:
 
         area = rectget(layout.rect, img.get_rect().w, layout.direction)
         self._commands.append(_DrawImage(area, uid, crop))
+
+        if border_color is not None:
+            area.left -= border_width + 2
+            area.top -= border_width + 2
+            area.width += border_width * 2 + 4
+            area.height += border_width * 2 + 4
+            self._commands.append(_DrawRect(area, border_color, border_width))
 
     def text(
             self,

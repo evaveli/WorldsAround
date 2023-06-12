@@ -1,4 +1,6 @@
 
+import json
+from pathlib import Path
 from typing import Any
 
 import pygame
@@ -13,6 +15,7 @@ from Source.tilemap import TileMap
 from Source.scenes.game_over import GameOver
 from Source.scenes.pause_menu import PauseMenu
 from Source.scenes.livesscene import LivesScene
+from Source.scenes.congrats import CongratsScene
 
 from Source.systems.animations import *
 from Source.systems.enemies import *
@@ -44,6 +47,10 @@ class _PropertyParser:
             return Player()
         elif value == "enemy":
             return Enemy()
+        elif value == "goal":
+            return Goal()
+        elif value == "powerup":
+            return Powerup()
         else:
             return _UnknownType(value)
 
@@ -70,9 +77,11 @@ def parse(key: str, value: Any) -> Component:
     elif key == "animations":
         return _PropertyParser.parse_anim(value)
     elif key == "name":
-        return Name(key)
+        return Name(value)
     elif key == "patrol":
         return PatrolRange(length=2 * int(value["range"]), duration=int(value["duration"]))
+    elif key == "collider":
+        return Collider(area=pygame.Rect(int(value[0]), int(value[1]), int(value[2]), int(value[3])))
 
     return _UnknownComponent(key)
 
@@ -85,6 +94,12 @@ class Level(Scene):
         super().__init__()
         self.file = file
         self.profile = profile
+
+        self.pu_list = {
+            "shield": PowerupData(start=(16, 0), duration=2000,),
+            # "speed": PowerupData(),
+            # "jump": PowerupData(),
+        }
 
         self.lives = 3  # number of tries left
 
@@ -104,6 +119,9 @@ class Level(Scene):
         self.dir = (0, 0)  # used for movement
         self.key = -1  # last key pressed
 
+        self.done = False
+        self.undead_timer = 0
+
         if ctx.restart:
             ctx.restart = False
 
@@ -114,9 +132,11 @@ class Level(Scene):
 
             for obj in self.map.objects.all():
                 obj.add(Velocity(0, 0))
-
-            for obj in self.map.objects.query(Enemy).ids():
                 obj.add(Active())
+
+            for _, size in self.map.objects.query(Powerup, Size).types():
+                size.w *= 0.5
+                size.h *= 0.5
 
             if self.map.background is not None and self.map.background not in self.dirty:
                 bg = self.images.unsafe_get(self.map.background)
@@ -155,6 +175,29 @@ class Level(Scene):
             else:
                 return Scene.Push(LivesScene(self.lives))
 
+        if self.done:
+            self.done = False
+
+            Path("./Data/scores.json").touch(exist_ok=True)
+
+            with open("./Data/scores.json", "r+") as f:
+                scores = json.load(f)
+
+                if self.file not in scores:
+                    scores[self.file] = {}
+                    scores[self.file]["profile"] = self.profile.name[:-5]
+                    scores[self.file]["score"] = self.timer // 1000
+
+                elif self.timer // 1000 < scores[self.file]["score"]:
+                    scores[self.file]["profile"] = self.profile.name[:-5]
+                    scores[self.file]["score"] = self.timer // 1000
+
+                f.seek(0)
+                json.dump(scores, f)
+                f.truncate()
+
+            return Scene.Push(CongratsScene())
+
         if self.game_over:
             self.game_over = False
             self.lives = 4
@@ -164,6 +207,8 @@ class Level(Scene):
 
     def update(self, dt: int):
         self.timer += dt
+        self.undead_timer -= dt
+
         if self.timer // 1000 >= 999:
             self.died = True
             pygame.event.post(DUMMY_EVENT)
@@ -173,10 +218,10 @@ class Level(Scene):
 
         update_animations(self.map.objects, dt)
 
-        mark_visible_enemies(
-            self.map.objects, self.camera.area,
-            self.map.tileset.tile_size, (self.map.width, self.map.height),
-        )
+        # mark_visible_enemies(
+        #     self.map.objects, self.camera.area,
+        #     self.map.tileset.tile_size, (self.map.width, self.map.height),
+        # )
 
         update_enemies(self.map.objects, dt)
         update_player(
@@ -193,25 +238,76 @@ class Level(Scene):
             map_w=self.map.width, map_h=self.map.height,
         )
 
-        for _, pos, size in self.map.objects.query(Player, Position, Size).types():
-            scale = size.h / self.map.tileset.tile_size[1]
+        handle_player_collisions(
+            self.map.objects, self.map.tileset.tile_size,
+        )
 
-            if pos.y + scale >= self.map.height:
+        for p in self.map.objects.query(Player, Position, Size, Collider).ids():
+            pos = p.unsafe_get(Position)
+            size = p.unsafe_get(Size)
+            coll = p.unsafe_get(Collider)
+
+            cam = self.camera.area
+
+            tile_size = self.map.tileset.tile_size
+            scale = cam.h // tile_size[1] // self.map.height
+
+            # check if goal reached
+            for _, gpos in self.map.objects.query(Goal, Position).types():
+                if gpos.x - 1 <= pos.x <= gpos.x + 1:
+                    self.done = True
+
+            parea = pygame.Rect(
+                pos.x * scale + coll.area.x,
+                pos.y * scale + coll.area.y,
+                coll.area.w,
+                coll.area.h,
+            )
+
+
+            # check if collided with enemy
+            for _, _, epos, esize in self.map.objects.query(Enemy, Active, Position, Size).types():
+                earea = pygame.Rect(
+                    epos.x * scale,
+                    epos.y * scale,
+                    esize.w,
+                    esize.h,
+                )
+
+                if parea.colliderect(earea):
+                    if p.has(Shield):
+                        p.remove(Shield)
+                        self.undead_timer = self.pu_list["shield"].duration
+                        return
+
+                    elif self.undead_timer < 0:
+                        self.died = True
+                        pygame.event.post(DUMMY_EVENT)
+                        return
+
+            if self.undead_timer < 0:
+                self.undead_timer = 0
+
+            # check if fell off the map
+            diff = size.h // self.map.tileset.tile_size[1]
+
+            if pos.y + diff >= self.map.height:
                 self.died = True
                 pygame.event.post(DUMMY_EVENT)
                 return
 
-            cam = self.camera.area
+            # center camera on player
+            self.camera.area.centerx = int(pos.x * scale * tile_size[0])
+            self.camera.area.centery = int(pos.y * scale * tile_size[1])
 
-            dstx = cam.center[0] - pos.x
-            dsty = cam.center[1] - pos.y
+            self.camera.area.x = max(
+                0, min(self.camera.area.x, self.map.width * tile_size[0] * scale - self.camera.area.w))
+            self.camera.area.y = max(
+                0, min(self.camera.area.y, self.map.height * tile_size[1] * scale - self.camera.area.h))
 
-            if abs(dstx) > cam.w * 0.75 or abs(dsty) > cam.h * 0.75:
-                self.camera.area.x = int(pos.x) - cam.w // 2
-                self.camera.area.y = int(pos.y) - cam.h // 2
-            # self.camera.center_on(int(pos.x), int(pos.y))
+        self._ui()
 
-        # UI
+    def _ui(self):
         pygame.display.get_surface().fill((0, 0, 0))
 
         rect = pygame.display.get_surface().get_rect()
@@ -230,10 +326,30 @@ class Level(Scene):
         self.ctx.image(
             rect, self.assets.ITEMS, pygame.Rect(0, 0, 16, 16))
 
-        l, x = ui.cut_left(rect, 16)
+        ui.cut_left(rect, 16)
 
-        self.ctx.text(x, f"x {self.lives}", self.assets.ARCADE_24,
+        self.ctx.text(rect, f"x {self.lives}", self.assets.ARCADE_24,
                       color=pygame.Color(255, 255, 255))
+
+        def powerup_widget(area: pygame.Rect, slot: type, index: str):
+            if p.has(slot):
+                name = p.unsafe_get(slot).name
+
+                ui.cut_left(area, 50)
+
+                self.ctx.text(area, index, self.assets.ARCADE_24,
+                              color=pygame.Color(255, 255, 255))
+
+                ui.cut_left(area, 16)
+
+                self.ctx.image(area, self.assets.ITEMS,
+                               (*self.pu_list[name].start, 16, 16),
+                               border_color=pygame.Color(255, 255, 255),
+                               border_width=2)
+
+        for p in self.map.objects.query(Player).ids():
+            powerup_widget(rect, Powerup1, "1")
+            powerup_widget(rect, Powerup2, "2")
 
         self.ctx.text_layout(
             ui.right(rect), f"{(self.timer//1000):>03}",
@@ -288,25 +404,25 @@ class Level(Scene):
                 self.camera.render(ts, dst, area)
 
         # render objects
-        for sprite, pos in self.map.objects.query(Sprite, Position).types():
+        for obj in self.map.objects.query(Active, Sprite, Position, Size).ids():
+            sprite = obj.unsafe_get(Sprite)
+            pos = obj.unsafe_get(Position)
+            size = obj.unsafe_get(Size)
+
             tex = self.images.unsafe_get(
                 sprite.uid).subsurface(sprite.rect)
-            tex = pygame.transform.scale_by(tex, scale)
+            tex = pygame.transform.scale(tex, (scale * size.w, scale * size.h))
 
             if sprite.flip:
                 tex = pygame.transform.flip(tex, True, False)
 
-            self.camera.render(
-                tex, (int(tile_size[0] * pos.x * scale), int(tile_size[1] * pos.y * scale)))
-
-        for _, _, pos, size in self.map.objects.query(Enemy, Active, Position, Size).types():
-            pygame.draw.rect(
-                pygame.display.get_surface(),
-                (255, 0, 0),
-                (tile_size[0] * pos.x * scale, tile_size[1] *
-                 pos.y * scale, size.w * scale, size.h * scale),
-                1,
-            )
+            if obj.has(Player):
+                if self.undead_timer % 2 == 0:
+                    self.camera.render(
+                        tex, (int(tile_size[0] * pos.x * scale), int(tile_size[1] * pos.y * scale)))
+            else:
+                self.camera.render(
+                    tex, (int(tile_size[0] * pos.x * scale), int(tile_size[1] * pos.y * scale)))
 
         # render UI
         self.ctx.draw(self.camera.screen)

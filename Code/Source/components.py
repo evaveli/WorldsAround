@@ -36,6 +36,13 @@ class Name(Component):
     name: str
 
 
+class Active(Component):
+    """
+    A component that marks an object as active.
+    """
+    pass
+
+
 @dataclass
 class Animation:
     start: tuple[int, int] = (0, 0)
@@ -56,3 +63,8 @@ class Animator(Component):
     def transition(self, name: str):
         self.elapsed = 0
         self.active = name
+
+
+@dataclass
+class Collider(Component):
+    area: Rect
